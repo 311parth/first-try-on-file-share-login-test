@@ -29,6 +29,16 @@ const loginSchema = new mongoose.Schema({
 })
 
 var loginModel = mongoose.model("loginmodels",loginSchema)
+
+
+const msgSchema = new mongoose.Schema({
+  to: String,
+  from : String,
+  msg : String
+})
+
+var msgModel = mongoose.model("msgmodels",msgSchema)
+
 const conn = mongoose.createConnection(dburl)
 
 
@@ -66,7 +76,15 @@ app.post("/login",(req,res)=>{
         if(err) throw err;
         if(result && await bcrypt.compare(loginpw,result.pw))
         {
-            res.send("login succesfully")
+            msgModel.find({to:loginuname},async(err,result)=>{
+              if(err) throw err;
+              if(result)
+                res.send(result);
+              else  
+                res.send("no msgs");
+            })
+
+            // res.send("login succesfully")
         }
         else{
             res.send("username password not matched")
@@ -109,19 +127,55 @@ app.post("/upload",upload.single("file"),(req,res)=>{
 })
 
 
+app.get("/download/:id", (req, res) => {
+  const bucket = new mongodb.GridFSBucket(conn.db, { bucketName: "filedb" });
 
-app.get("/download/:id",(req,res)=>{
-    const bucket = new mongodb.GridFSBucket(conn.db,{bucketName : "filedb"});
-  
-    bucket.openDownloadStreamByName(req.params.id).pipe(
-      fs.createWriteStream(req.params.id).on("close", () => {
-        res.download(__dirname + "/" + req.params.id);
-        fs.rm(req.params.id,()=>{
-          console.log("file removed")
-        })
+  bucket.openDownloadStreamByName(req.params.id).pipe(
+    fs.createWriteStream(req.params.id).on("close", () => {
+      res.download(__dirname + "/" + req.params.id);
+      fs.rm(req.params.id, () => {
+        console.log("file removed");
+      });
+    })
+  );
+});
+
+
+app.post("/sendmsg",(req,res)=>{
+  const touname = req.body.touname;
+  const fromuname = req.body.fromuname;
+  const msg = req.body.msg;
+
+
+  loginModel.findOne({uname : touname},(err,result)=>{
+    if(err) throw err;
+    if(!result)
+      res.send("Enter valid touname");
+    else{
+      loginModel.findOne({uname : fromuname},(err,result)=>{
+        if(err) throw err;
+        if(!result)
+          res.send("Enter valid fromuname");
+        else
+        {
+          let newDoc = new msgModel({
+            msg : msg,
+            to : touname,
+            from : fromuname
+          }).save();
+          res.send("done")
+
+        }
+          
       })
-    );
-  })
+    }
+  });
+
+
+})
+
+
+
 
 
 
