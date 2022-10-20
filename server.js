@@ -14,10 +14,16 @@ const crypto = require('crypto');
 const path = require('path');
 const fs = require("fs");
 
+const jwt = require("jsonwebtoken")
+
 app.use(bodyParser.urlencoded({extended : true }))
+
+var cookieParser = require('cookie-parser');
+app.use(cookieParser());
 
 const mongoose = require("mongoose")
 const Grid  = require("gridfs-stream")
+const { join } = require("path")
 
 const dburl =  process.env.MONGODB_URL;
 mongoose.connect(dburl)
@@ -34,21 +40,64 @@ var loginModel = mongoose.model("loginmodels",loginSchema)
 const msgSchema = new mongoose.Schema({
   to: String,
   from : String,
-  msg : String
+  msg : String,
+  time : Date
 })
 
 var msgModel = mongoose.model("msgmodels",msgSchema)
+
+const fileinfoSchema = new mongoose.Schema({
+  upload_uname : String,
+  name : String,
+})
+
+var fileinfoModel = mongoose.model("fileinfomodels",fileinfoSchema)
+
 
 const conn = mongoose.createConnection(dburl)
 
 
 
-
 app.get("/",(req,res)=>{
-    res.sendFile(__dirname+"/index.html")
+    res.sendFile(__dirname + join("/public/index.html"))
 })
 
-app.post("/",async(req,res)=>{
+
+app.get("/home",isLogin,(req,res)=>{
+  res.sendFile(__dirname + join("/public/home.html"))
+})
+
+function isLogin(req,res,next){
+  // console.log(req.cookies.islogin)
+  if(req.cookies.islogin)
+    next()
+  else
+    res.send("Login first")
+}
+
+app.post("/logout",(req,res)=>{
+  res.clearCookie("islogin");
+  res.redirect("/")
+})
+
+
+app.get("/register",(req,res)=>{
+  res.sendFile(__dirname + join("/public/register.html"))
+})
+
+
+
+app.get("/msg",(req,res)=>{
+  res.sendFile(__dirname + join("/public/msg.html"))
+})
+
+app.get("/upload",isLogin,(req,res)=>{
+  res.sendFile(__dirname + join("/public/upload.html"))
+})
+
+
+
+app.post("/register",async(req,res)=>{
     var uname = req.body.uname;
     var pw = req.body.pw;
     const hashedPw = await bcrypt.hash(pw, salt);
@@ -69,6 +118,9 @@ app.post("/",async(req,res)=>{
 })
 
 app.post("/login",(req,res)=>{
+  
+
+  console.log(req.headers.authorization)
     var loginuname = req.body.loginuname;
     var loginpw = req.body.loginpw;
 
@@ -76,15 +128,17 @@ app.post("/login",(req,res)=>{
         if(err) throw err;
         if(result && await bcrypt.compare(loginpw,result.pw))
         {
-            msgModel.find({to:loginuname},async(err,result)=>{
-              if(err) throw err;
-              if(result)
-                res.send(result);
-              else  
-                res.send("no msgs");
-            })
+            // msgModel.find({to:loginuname},async(err,result)=>{
+            //   if(err) throw err;
+            //   if(result)
+            //     res.send(result);
+            //   else  
+            //     res.send("no msgs");
+            // }).sort({time : -1})
 
-            // res.send("login succesfully")
+            
+            res.cookie("islogin" , true,{}).cookie("uname",loginuname,{}).redirect("/home")
+
         }
         else{
             res.send("username password not matched")
@@ -93,15 +147,13 @@ app.post("/login",(req,res)=>{
 })
 
 
-
 var gfs;
 
 conn.once('open',()=>{
     gfs =Grid(conn.db,mongoose.mongo)
     gfs.collection("filedb")
-
 })
-
+var filename ;
 var storage = new GridFsStorage({
     url: "mongodb://localhost:27017/testdb",
     file: (req, file) => {
@@ -110,8 +162,8 @@ var storage = new GridFsStorage({
           if (err) {
             return reject(err);
           }
-          const filename = buf.toString('hex') + path.extname(file.originalname);
-          const fileInfo = {  
+           filename = buf.toString('hex') + path.extname(file.originalname);
+          const fileInfo = {
             filename: filename,
             bucketName: 'filedb'
           };
@@ -119,10 +171,17 @@ var storage = new GridFsStorage({
         });
       });
     }
+
   });
 const upload = multer({ storage });
 
-app.post("/upload",upload.single("file"),(req,res)=>{
+app.post("/upload",upload.single("file"),async(req,res)=>{
+    console.log(req.body);
+    
+    let new_fileinfo = new fileinfoModel({
+      upload_uname : req.cookies.uname,
+      name : filename
+     }).save();
     res.json({file : req.file})
 })
 
@@ -141,7 +200,7 @@ app.get("/download/:id", (req, res) => {
 });
 
 
-app.post("/sendmsg",(req,res)=>{
+app.post("/msg",(req,res)=>{
   const touname = req.body.touname;
   const fromuname = req.body.fromuname;
   const msg = req.body.msg;
@@ -161,19 +220,28 @@ app.post("/sendmsg",(req,res)=>{
           let newDoc = new msgModel({
             msg : msg,
             to : touname,
-            from : fromuname
+            from : fromuname,
+            time : Date.now(),
           }).save();
           res.send("done")
-
         }
-          
       })
     }
   });
+  })
 
-
-})
-
+/*
+//not needed now
+app.get("/api/get_all_users",(req,res)=>{
+  let all_users = []
+  loginModel.find({},(err,result)=>{
+    result.forEach(i => {
+      all_users.push(i.uname)
+    });
+   res.send(all_users)
+  })
+});
+*/
 
 
 
