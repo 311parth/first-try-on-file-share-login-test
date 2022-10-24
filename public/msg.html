@@ -33,17 +33,20 @@
           <li class="nav-item">
             <a class="nav-link" href="/upload">Upload</a>
           </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/inbox">inbox</a>
+          </li>
         </ul>
       </div>
     </div>
   </nav>
 
     <span>for msg sending</span>
-    <form action="/sendmsg" method="post">
+    <form action="/msg" method="post">
         <span>TO Username :</span>
         <input type="text" name="touname" id="">
-        <span>From Username :</span>
-        <input type="text" name="fromuname" id="">
+        <!-- <span>From Username :</span>
+        <input type="text" name="fromuname" id=""> -->
         <span>Message :</span>
         <input type="text" name="msg" id="">
         <button type="submit">submit</button>
