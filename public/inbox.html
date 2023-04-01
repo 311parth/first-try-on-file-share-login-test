@@ -85,9 +85,9 @@
             const data = await res.json()
             let inboxMainUl = document.getElementById("inbox-main-ul");
             data.forEach(element => {
-                inboxMainUl.innerHTML += `<li class="list-group-item" >${element.msg}</li>`;
+                inboxMainUl.innerHTML += `<li class="list-group-item" >${element.msg}<b> From ${element.from}<b/></li> `;
             });
-            // console.log(data);
+            console.log(data);
         }
         
     </script>

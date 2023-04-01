@@ -30,7 +30,6 @@ const port = process.env.PORT;
 const { msgModel } = require("./model/msgModel");
 const { loginModel } = require("./model/loginModel");
 const { fileinfoModel } = require("./model/fileinfoModel");
-const { error } = require("console");
 
 app.get("/", (req, res) => {
   res.sendFile(__dirname + join("/public/index.html"));
@@ -91,7 +90,7 @@ app.post("/register", async (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  console.log(req.headers.authorization);
+  // console.log(req.headers.authorization);
   var loginuname = req.body.loginuname;
   var loginpw = req.body.loginpw;
 
@@ -99,7 +98,7 @@ app.post("/login", (req, res) => {
     if (err) throw err;
     if (result && (await bcrypt.compare(loginpw, result.pw))) {
       const token = jwt.sign({ uname: loginuname }, process.env.TOKEN_SECRET, {
-        expiresIn: "10m",
+        expiresIn: "30m",
       });
       res
         .cookie("secret", token, {})
@@ -135,8 +134,10 @@ var storage = new GridFsStorage({
 const upload = multer({ storage });
 
 app.post("/upload", upload.single("file"), async (req, res) => {
+// app.post("/upload", async (req, res) => {
+
   var recUname = req.body.recuname;
-  console.log(req.body);
+  console.log(req.body);  
   try {
     let new_fileinfo = await new fileinfoModel({
       upload_uname: req.cookies.uname,
@@ -208,7 +209,7 @@ app.get("/api/get_all_users",(req,res)=>{
   loginModel.find({},(err,result)=>{
     result.forEach(i => {
       all_users.push(i.uname)
-    });
+    }); 
    res.send(all_users)
   })
 });
@@ -234,10 +235,7 @@ function authUserWithparams(req, res, next) {
   jwt.verify(token, process.env.TOKEN_SECRET, (err, user) => {
     logged_user = user;
     if (err) return res.sendStatus(403);
-    if (
-      req.cookies.uname === logged_user.uname &&
-      req.params.id === logged_user.uname
-    ) {
+    if (req.cookies.uname === logged_user.uname && req.params.id === logged_user.uname) {
       next();
     } else return res.sendStatus(403);
   });

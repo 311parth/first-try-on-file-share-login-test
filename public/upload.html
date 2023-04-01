@@ -25,7 +25,7 @@
                 <a class="nav-link" href="/Home">Home</a>
         </li>
           <li class="nav-item">
-            <a class="nav-link" href="/register">Register</a>
+            <a class="  nav-link" href="/register">Register</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="/msg">Messages</a>
@@ -52,10 +52,41 @@
         </div>
     </form>
 
+    <!-- <div action="/upload" method="post" enctype="multipart/form-data" id="form1">
+      <div> 
+          <label for="formFileLg" class="form-label">Receiver's username</label>
+          <input type="text" name="recuname">
+          <label for="formFileLg" class="form-label">file upload</label>
+          <input class="form-control form-control-lg" id="formFileLg" type="file" name="file">
+          <button type="submit" class="btn btn-dark" onclick="submitFile()">Upload</button>
+      </div>
+  </div> -->
+
+    <script>
+        function submitFile() {
+          const formData = new FormData();
+          var formFileLg = document.getElementById("formFileLg");
+          formData.append('formFile', formFileLg.files[0]);
+          console.log(formFileLg.files[0])
+          console.log("formData",formData)
+          //now username is granted and unique so now i can upload profile image
+          fetch(`/upload`, {
+            method: "POST",
+            credentials: "include",
+            body: formData
+          }).then((res) => res.json())
+            .then((data) => {
+              console.log(data);
+              // if (data.isuploaded === 1)
+              //   window.location.href = "/login";
+            })
+        }
+
+
+    </script>
+
+
 
     <br><br>
-
-    
-
 </body>
 </html> 

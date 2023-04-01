@@ -7,7 +7,6 @@ const fileinfoSchema = new mongoose.Schema({
     time : Date,
     recUname: String
   })
-  
 var fileinfoModel = mongoose.model("fileinfomodels",fileinfoSchema)
   
 module.exports= {
