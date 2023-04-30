@@ -135,9 +135,8 @@ const upload = multer({ storage });
 
 app.post("/upload", upload.single("file"), async (req, res) => {
 // app.post("/upload", async (req, res) => {
-
   var recUname = req.body.recuname;
-  console.log(req.body);  
+  // console.log(req.body);  
   try {
     let new_fileinfo = await new fileinfoModel({
       upload_uname: req.cookies.uname,
@@ -145,6 +144,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
       time: Date.now(),
       recUname: recUname,
     }).save();
+    // console.log("1111",req.file)
     res.json({ file: req.file });
   } catch (error) {
     console.log(error);
@@ -256,7 +256,7 @@ app.get("/api/msg/:id", authUserWithparams, async (req, res) => {
       )
       .sort({ time: -1 })
       .clone(); //without clone it will give warning
-    //reason for adding clone  => https://stackoverflow.com/questions/68945315/mongooseerror-query-was-already-executed
+      // console.log(data);
     res.json(data);
   } catch (error) {
     console.log(error);
@@ -266,10 +266,14 @@ app.get("/api/msg/:id", authUserWithparams, async (req, res) => {
 app.get("/inbox", authenticateToken, (req, res) => {
   res.sendFile(__dirname + join("/public/inbox.html"));
 });
+app.get("/download", authenticateToken, (req, res) => {
+  res.sendFile(__dirname + join("/public/download.html"));
+});
 
 app.get("/", (req, res) => {
   res.redirect("/login");
 });
+app.use(express.static(__dirname + '/public'));
 
 app.listen(port, () => {
   console.log(`listing on port ${port}`);

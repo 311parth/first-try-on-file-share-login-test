@@ -39,6 +39,9 @@
                     <li class="nav-item">
                         <a class="nav-link" href="/inbox">inbox</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/download">download</a>
+                      </li>
                 </ul>
             </div>
         </div>
@@ -82,7 +85,7 @@
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' }
             })
-            const data = await res.json()
+            const data = await res.json();
             let inboxMainUl = document.getElementById("inbox-main-ul");
             data.forEach(element => {
                 inboxMainUl.innerHTML += `<li class="list-group-item" >${element.msg}<b> From ${element.from}<b/></li> `;

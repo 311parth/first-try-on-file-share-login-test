@@ -1,0 +1,58 @@
+<html>
+  <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/elliptic/6.5.4/elliptic.min.js"></script>
+  </head>
+  <body>
+    <input type="file" id="fileInput" />
+    <button id="encryptButton" onclick="encryptFile()">Encrypt</button>
+    <button id="decryptButton" onclick="decryptFile()">Decrypt</button>
+
+    <script>
+      const curve = new elliptic.ec('secp256k1');
+      const keyPair = curve.genKeyPair();
+        console.log(keyPair)
+      function encryptFile() {
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+
+        reader.onload = async () => {
+          const buffer = reader.result;
+          const encrypted = await eccrypto.encrypt(keyPair.publicKey, Buffer.from(buffer));
+          const encryptedBuffer = Buffer.concat([encrypted.iv, encrypted.ephemPublicKey, encrypted.ciphertext, encrypted.mac]);
+
+          const blob = new Blob([encryptedBuffer], { type: 'application/octet-stream' });
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(blob);
+          link.download = file.name + '.enc';
+          link.click();
+        };
+
+        reader.readAsArrayBuffer(file);
+      }
+
+      function decryptFile() {
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+
+        reader.onload = async () => {
+          const buffer = reader.result;
+          const iv = buffer.slice(0, 16);
+          const ephemPublicKey = buffer.slice(16, 49);
+          const ciphertext = buffer.slice(49, -16);
+          const mac = buffer.slice(-16);
+
+          const decrypted = await eccrypto.decrypt(keyPair.privateKey, { iv, ephemPublicKey, ciphertext, mac });
+          const blob = new Blob([decrypted], { type: 'application/octet-stream' });
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(blob);
+          link.download = file.name.replace('.enc', '');
+          link.click();
+        };
+
+        reader.readAsArrayBuffer(file);
+      }
+    </script>
+  </body>
+</html>

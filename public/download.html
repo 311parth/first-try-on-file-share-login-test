@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>download</title>
+    <script src="http://localhost:3000/eccrypto.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ethereumjs/browser-builds/dist/ethereumjs-tx/ethereumjs-tx-1.3.3.min.js"></script>
+</head>
+<body>
+    <input type="text" name="" id="fileurl" placeholder="enter file url">
+    <input type="button" value="download" onclick="downloadFile()">
+    <script>
+        // const url = "http://localhost:3000/download/bc556dcc0ce28a36dd3140e7bba78201.png"
+        
+        
+        async function downloadFile() {
+          
+          const url = document.getElementById("fileurl").value;
+          console.log(url);
+
+
+          const storedKeyPair = JSON.parse(localStorage.getItem('myKeyPair'));
+          console.log(storedKeyPair)
+  fetch(url)
+    .then((response) => response.blob())
+    .then(async(blob) => {
+      // Read the blob data into memory
+      const reader = new FileReader();
+      reader.onload =async () => {
+        const fileData = reader.result;
+        // Process the file data here
+        console.log(fileData);
+
+        // const fileDataUint8Array = new Uint8Array(fileData);
+        // console.log(fileDataUint8Array)
+        const fileDataUint8Array = await ethereumjs.Buffer.Buffer.from(fileData,'hex')
+        console.log(fileDataUint8Array)
+
+        const tempBase64 = new Uint8Array(ethereumjs.Buffer.Buffer.from(fileDataUint8Array, 'base64'));
+        console.log(tempBase64)
+
+
+        var privateKeyUint8Array = ethereumjs.Buffer.Buffer.from(storedKeyPair.privateKey.data,'hex');
+        var publicKeyUint8Array = ethereumjs.Buffer.Buffer.from(storedKeyPair.publicKey.data,'hex');
+        console.log(privateKeyUint8Array);  
+        const decryptedFileData = await decryptFile(fileDataUint8Array, privateKeyUint8Array);
+        console.log(decryptedFileData);
+
+        // Convert the processed file data to a Blob object
+        const processedBlob = new Blob([fileData], { type: blob.type });
+
+        // Create a URL from the processed Blob
+        const url = URL.createObjectURL(processedBlob);
+
+        // Create a link to download the processed file
+        const link = document.createElement("a");
+        link.href = url;
+        const fileName = url.split("/").pop();
+        link.download = fileName;
+        link.click();
+
+        // Cleanup the URL object
+        URL.revokeObjectURL(url);
+      };
+      reader.readAsArrayBuffer(blob);
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+}
+
+
+    </script>
+
+
+</body>
+</html>

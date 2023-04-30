@@ -1,6 +1,9 @@
 const { Buffer } = require("buffer");
 var eccrypto = require("eccrypto");
 
+function hello(params) {
+    console.log("he");
+}
 var privateKeyA = eccrypto.generatePrivate();
 var publicKeyA = eccrypto.getPublic(privateKeyA);
 var privateKeyB = eccrypto.generatePrivate();
