@@ -128,18 +128,37 @@ var publicKeyUint8Array ;
           // const encryptedFileData = await encryptFile(fileData,PublicKey);
           // const encryptedFileData = await encryptFile(fileData,keys.publicKey);
           const encryptedFileData = await encryptFile(fileData,publicKeyUint8Array,privateKeyUint8Array);
+          // console.log(encryptedFileDataString);
+          // const encryptedFileDataObject = JSON.parse(encryptedFileDataString);
+          // console.log(encryptedFileDataObject);
+
+          // const encryptedFile = new File([encryptedFileDataString], file.name, { type: file.type });
+          // formData.append('file', encryptedFile);
+
+
+
+
 
           // const encryptedFileData = await encryptFile(fileData,keys.privateKey);
 
           
 
           // //working encryption 
-          console.log(typeof(encryptedFileData),encryptedFileData);
-          const tempEncrypted = await ethereumjs.Buffer.Buffer.from(encryptedFileData.toString('hex'));
-          console.log(tempEncrypted)
-          const encryptedFile = new File([tempEncrypted], file.name, { type: file.type });
-          console.log(encryptedFile)
-          formData.set('file', encryptedFile);
+          // console.log(typeof(encryptedFileData),encryptedFileData);
+          // const tempEncrypted = await ethereumjs.Buffer.Buffer.from(encryptedFileData.toString('hex'));
+          // console.log(tempEncrypted)
+          // const encryptedFile = new File([tempEncrypted], file.name, { type: file.type });
+          // console.log(encryptedFile)
+          // formData.set('file', encryptedFile);
+
+          // console.log(typeof(encryptedFileData),encryptedFileData);
+          // const tempEncrypted = await ethereumjs.Buffer.Buffer.from(encryptedFileData.toString('hex'));
+          // console.log(tempEncrypted)
+          // const encryptedFile = new File([encryptedFileData], file.name, { type: file.type });
+          // console.log(encryptedFile)
+          // formData.set('file', encryptedFile);
+
+
 
           
 

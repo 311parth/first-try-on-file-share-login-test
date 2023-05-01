@@ -38,14 +38,15 @@
         const fileDataUint8Array = await ethereumjs.Buffer.Buffer.from(fileData,'hex')
         console.log(fileDataUint8Array)
 
-        const tempBase64 = new Uint8Array(ethereumjs.Buffer.Buffer.from(fileDataUint8Array, 'base64'));
-        console.log(tempBase64)
+        // const tempBase64 = new Uint8Array(ethereumjs.Buffer.Buffer.from(fileDataUint8Array, 'base64'));
+        // console.log(tempBase64)
 
 
         var privateKeyUint8Array = ethereumjs.Buffer.Buffer.from(storedKeyPair.privateKey.data,'hex');
         var publicKeyUint8Array = ethereumjs.Buffer.Buffer.from(storedKeyPair.publicKey.data,'hex');
         console.log(privateKeyUint8Array);  
         const decryptedFileData = await decryptFile(fileDataUint8Array, privateKeyUint8Array);
+        // const decryptedFileData = await decryptFile(fileData, privateKeyUint8Array);
         console.log(decryptedFileData);
 
         // Convert the processed file data to a Blob object
