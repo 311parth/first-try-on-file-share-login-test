@@ -5,15 +5,55 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>download</title>
-    <script src="http://localhost:3000/eccrypto.js"></script>
+    <!-- <script src="http://localhost:3000/eccrypto.js"></script> -->
+    <!-- <script src="http://localhost:3000/eccrypto.js"></script> -->
+    <script src="http://localhost:3000/eccrypto-2.js"></script>
+
+
 <script src="https://cdn.jsdelivr.net/gh/ethereumjs/browser-builds/dist/ethereumjs-tx/ethereumjs-tx-1.3.3.min.js"></script>
 </head>
 <body>
     <input type="text" name="" id="fileurl" placeholder="enter file url">
-    <input type="button" value="download" onclick="downloadFile()">
+    <!-- <input type="button" value="download" onclick="downloadFile()"> -->
+    <input type="button" value="download" onclick="downloadFile2()">
+
     <script>
         // const url = "http://localhost:3000/download/bc556dcc0ce28a36dd3140e7bba78201.png"
         
+      fetch("http://localhost:3000/temp/get_keys",{
+        method:"POST",
+      }).then(res=>res.json())
+      .then((data)=>{
+        // console.log(data);
+        localStorage.setItem("keys",JSON.stringify(data))
+      })
+
+
+        
+        async function downloadFile2(){
+          const url = document.getElementById("fileurl").value;
+            fetch(`${url}`)
+            .then(async response => {
+              const data = await response.json();
+              // const decryptedFileData = await decryptFile(JSON.stringify(data), ethereumjs.Buffer.Buffer.from(ethereumjs.Buffer.Buffer.from(JSON.parse(localStorage.getItem("myKeyPair")).privateKey), 'hex'));
+              const decryptedFileData = await decryptFile(JSON.stringify(data), ethereumjs.Buffer.Buffer.from(ethereumjs.Buffer.Buffer.from(JSON.parse(localStorage.getItem("keys")).privateKey), 'hex'));
+
+              
+              // Create a blob from the decrypted file data
+              const blob = new Blob([decryptedFileData]);
+              
+              var filename = url.split('/').pop();
+              // Create a link element with the blob URL and trigger a download
+              const link = document.createElement('a');
+              link.href = URL.createObjectURL(blob);
+              link.download = filename; // Set the filename for the downloaded file
+              link.click();
+            })
+            .catch(error => {
+              console.error(error);
+            });
+      }
+
         
         async function downloadFile() {
           
@@ -21,7 +61,10 @@
           console.log(url);
 
 
-          const storedKeyPair = JSON.parse(localStorage.getItem('myKeyPair'));
+          // const storedKeyPair = JSON.parse(localStorage.getItem('myKeyPair'));
+          const storedKeyPair = JSON.parse(localStorage.getItem('keys'));
+
+
           console.log(storedKeyPair)
   fetch(url)
     .then((response) => response.blob())
@@ -32,7 +75,7 @@
         const fileData = reader.result;
         // Process the file data here
         console.log(fileData);
-
+        return;
         // const fileDataUint8Array = new Uint8Array(fileData);
         // console.log(fileDataUint8Array)
         const fileDataUint8Array = await ethereumjs.Buffer.Buffer.from(fileData,'hex')

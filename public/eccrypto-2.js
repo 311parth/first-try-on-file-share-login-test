@@ -26806,144 +26806,51 @@ arguments[4][137][0].apply(exports,arguments)
 },{"dup":137}],222:[function(require,module,exports){
 arguments[4][138][0].apply(exports,arguments)
 },{"dup":138}],223:[function(require,module,exports){
-const { Buffer } = require("buffer");
-var eccrypto = require("eccrypto");
+(function (Buffer){(function (){
+const fs = require('fs');
+const eccrypto = require('eccrypto');
+// const keyPath = './keys.json';
+// const keys = JSON.parse(fs.readFileSync(keyPath));
 
-window.hello = function hello(params) {
-    console.log("he",params);
+// const privateKey = Buffer.from(keys.privateKey.data, 'hex');
+// const publicKey = Buffer.from(keys.publicKey.data,'hex');
+
+
+window.encryptFile = async function encryptFile(inputBuffer,publicKey) {
+    const encrypted = await eccrypto.encrypt(publicKey, inputBuffer);
+    const encryptedJson = JSON.stringify(encrypted);
+    return encryptedJson;
+    // return Buffer.from(encryptedJson);
 }
 
+window.decryptFile = async function decryptFile(inputBuffer,privateKey) {
+    const encrypted = JSON.parse(inputBuffer);
+    const decrypted = await eccrypto.decrypt(privateKey, {
+      iv: Buffer.from(encrypted.iv, 'hex'),
+      ephemPublicKey: Buffer.from(encrypted.ephemPublicKey, 'hex'),
+      ciphertext: Buffer.from(encrypted.ciphertext, 'hex'),
+      mac: Buffer.from(encrypted.mac, 'hex')
+    });
+    return decrypted;
+}
 
-// var privateKeyA = eccrypto.generatePrivate();
-// var publicKeyA = eccrypto.getPublic(privateKeyA);
-// var privateKeyB =  eccrypto.generatePrivate();
-// var publicKeyB =  eccrypto.getPublic(privateKeyB);
+// const inputFileBuffer = fs.readFileSync('./p6-2.png');
+// encryptFile(inputFileBuffer,publicKey)
+//   .then(encryptedBuffer => {
+//     fs.writeFileSync('enc-p6-2.json', encryptedBuffer);
+//     console.log('File encrypted and saved as encrypted-file.json');
+//   })
+// .catch(error => console.error('Error encrypting file:', error)).then(()=>{
+    
+//     const encryptedData = fs.readFileSync('enc-p6-2.json');
+//     decryptFile(encryptedData,privateKey)
+//       .then(decrypted => {
+//         fs.writeFileSync('dec-p6-2.png', decrypted);
+//         console.log('File decrypted and saved to decrypted-p6-2.png');
+//       })
+//       .catch(err => console.error('Error decrypting:', err));
 
-
-// console.log(publicKeyA);
-// eccrypto.derive(privateKeyA, publicKeyB).then(function(sharedKey1) {
-//   eccrypto.derive(privateKeyB, publicKeyA).then(function(sharedKey2) {
-//     console.log("Both shared keys are equal:", sharedKey1, sharedKey2);
-//   });
-// });
-var fs = require("fs");
-
-// fs.readFile("./bernard-hermant-hQ3WZnY3yZ0-unsplash.jpg","utf8",(err,data)=>{
-
-//     console.log(data)
-//     eccrypto.encrypt(publicKeyB, Buffer.from(data)).then(function(encrypted) {
-//         // B decrypting the message.
-//         console.log(encrypted.ciphertext);
-//         eccrypto.decrypt(privateKeyB, encrypted).then(function(plaintext) {
-//         //   console.log("Message to part B:", plaintext.toString());
-//             let writer = fs.createWriteStream('test.jpg') 
-//             writer.write(plaintext);
-//         });
-//       });
 // })
 
-// window.encryptFile = async function encryptFile(data) {
-//   console.log("hii");
-//   const encrypted = await eccrypto.encrypt(publicKeyB, data);
-//   const decrypted = await eccrypto.decrypt(privateKeyB, encrypted);
-//   // console.log(typeof(encrypted),typeof(decrypted));
-//   // return Buffer.from(decrypted);
-//   return Buffer.from(JSON.stringify(encrypted));
-// }
-// window.decryptFile = async function decryptFile(data) {
-//   // console.log("hii");
-//   // const encrypted = await eccrypto.encrypt(publicKeyB, data);
-//   // const decrypted = await eccrypto.decrypt(privateKeyB, data);
-//   const decrypted = await eccrypto.decrypt(privateKeyB, new Uint8Array(data));
-  
-//   // console.log(typeof(encrypted),typeof(decrypted));
-//   // return Buffer.from(decrypted);
-//   return Buffer.from(JSON.stringify(decrypted));
-
-// }
-
-var privateKeyB =  eccrypto.generatePrivate();
-var publicKeyB =  eccrypto.getPublic(privateKeyB);
-
-
-window.generateKeyPair  = async function generateKeyPair() {
-  const privateKeyB = await eccrypto.generatePrivate();
-  const publicKeyB = eccrypto.getPublic(privateKeyB);
-  
-  return {
-    privateKey: privateKeyB,
-    publicKey: publicKeyB,
-  };
-}
-
-
-window.encryptFile = async function encryptFile(data,publicKey,privatekey) {
-  // console.log("hii");
-  // console.log(publicKey)
-  const encrypted = await eccrypto.encrypt(publicKey, data);
-  // const decrypted = await eccrypto.decrypt(privateKeyB, encrypted);
-  // console.log(typeof(encrypted),typeof(decrypted));
-  // return Buffer.from(decrypted);
-  console.log(typeof(encrypted),encrypted);
-  // return Buffer.from(JSON.stringify(encrypted));
-  // return Buffer.from(encrypted.toString('hex'));
-  return encrypted;
-}
-window.decryptFile = async function decryptFile(data, privateKey) {
-  // console.log(data)
-  const privateKeyBuffer = await Buffer.from(privateKey, 'hex');
-  console.log(privateKeyBuffer);
-  const decrypted = await eccrypto.decrypt(privateKeyBuffer, data);
-  return decrypted;
-}
-
-// window.decryptFile = async function decryptFile(data,privateKey) {
-//   // console.log(data);
-//   const decrypted = await eccrypto.decrypt(privateKey, data);
-//   // return Buffer.from(JSON.stringify(decrypted));
-//   return decrypted;
-// }
-
-
-
-var reader = fs.createReadStream("./bernard-hermant-hQ3WZnY3yZ0-unsplash.jpg");
-reader.on('data', function (chunk) {
-    eccrypto.encrypt(publicKeyB, Buffer.from(chunk)).then(function(encrypted) {
-        eccrypto.decrypt(privateKeyB, encrypted).then(function(plaintext) {
-        let writer = fs.createWriteStream('decrypted.jpg',{
-            flags:"a"
-        }) // Write the decrypted data to a new JPEG file
-        writer.write(Buffer.from(plaintext));
-        writer.end();
-        });
-      });   
-});
-
-
-// var reader = fs.createReadStream("./bernard-hermant-hQ3WZnY3yZ0-unsplash.jpg");
-// reader.on('data', function (chunk) {
-//     importedAlgo.encrypt(key,Buffer.from(chunk)).then(function(encrypted) {//encryption method
-
-//         //store encrypted file 
-        
-//         //TODO:
-
-//         //decrypt file 
-//         importedAlgo.decrypt(key, encrypted).then(function(plaintext) {
-//         let writer = fs.createWriteStream('decrypted.jpg',{//chenge .jpg to .pdf or anything else according to input file
-//             flags:"a"
-//         }) // Write the decrypted data to a new JPEG file
-//         writer.write(Buffer.from(plaintext));
-//         writer.end();
-//         });
-//       })
-// });
-
+}).call(this)}).call(this,require("buffer").Buffer)
 },{"buffer":64,"eccrypto":189,"fs":1}]},{},[223]);
-
-window.encryptFileNew = async function encryptFile(fileBuffer) {
-  const data = new Uint8Array(fileBuffer);
-  const encrypted = await eccrypto.encrypt(publicKey, data);
-  const encryptedData = JSON.stringify(encrypted);
-  return encryptedData;
-}

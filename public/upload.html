@@ -11,8 +11,10 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3" crossorigin="anonymous"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/elliptic/6.5.4/elliptic.min.js"></script>
-<script src="http://localhost:3000/eccrypto.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/ethereumjs/browser-builds/dist/ethereumjs-tx/ethereumjs-tx-1.3.3.min.js"></script>
+<!-- <script src="http://localhost:3000/eccrypto.js"></script> -->
+<script src="http://localhost:3000/eccrypto-2.js"></script>
+
 </head>
 <body>
 
@@ -64,8 +66,19 @@
 
     <script>
 
-const ec = new elliptic.ec('secp256k1');
-    const key = ec.genKeyPair();
+      fetch("http://localhost:3000/temp/get_keys",{
+        method:"POST",
+      }).then(res=>res.json())
+      .then((data)=>{
+        // console.log(data);
+        localStorage.setItem("keys",JSON.stringify(data))
+      })
+
+
+
+
+// const ec = new elliptic.ec('secp256k1');
+//     const key = ec.genKeyPair();
 
     
     // const PublicKey =  key.getPublic().encode('hex');
@@ -79,21 +92,21 @@ const ec = new elliptic.ec('secp256k1');
     // const PublicKey = Buffer.from(key.getPublic().encode('hex'), 'hex');
 
 // const PrivateKey = key.getPrivate('hex');
-      var keys;
+//       var keys;
       
-var privateKeyUint8Array;
-var publicKeyUint8Array ;
-      async function getKeys(params) {
-        keys =  await generateKeyPair();
-        console.log(keys)
-      }
+// var privateKeyUint8Array;
+// var publicKeyUint8Array ;
+//       async function getKeys(params) {
+//         keys =  await generateKeyPair();
+//         console.log(keys)
+//       }
 
 
-      getKeys().then(()=>{
-        localStorage.setItem('myKeyPair', JSON.stringify(keys));
-        privateKeyUint8Array = ethereumjs.Buffer.Buffer.from(keys.privateKey,'hex');
-        publicKeyUint8Array = ethereumjs.Buffer.Buffer.from(keys.publicKey,'hex');
-      })
+//       getKeys().then(()=>{
+//         localStorage.setItem('myKeyPair', JSON.stringify(keys));
+//         privateKeyUint8Array = ethereumjs.Buffer.Buffer.from(keys.privateKey,'hex');
+//         publicKeyUint8Array = ethereumjs.Buffer.Buffer.from(keys.publicKey,'hex');
+//       })
 
       
       // console.log(PublicKey,PrivateKey)
@@ -106,6 +119,7 @@ var publicKeyUint8Array ;
           const formData = new FormData(form1);
           // console.log(FormData) 
           const file = formData.get("file");
+
           // console.log(file);
         // Read the file content into a buffer
         const fileBuffer = await new Promise((resolve, reject) => {
@@ -127,7 +141,62 @@ var publicKeyUint8Array ;
           const fileData = new Uint8Array(fileBuffer);
           // const encryptedFileData = await encryptFile(fileData,PublicKey);
           // const encryptedFileData = await encryptFile(fileData,keys.publicKey);
-          const encryptedFileData = await encryptFile(fileData,publicKeyUint8Array,privateKeyUint8Array);
+         //* const encryptedFileData = await encryptFile(fileData,publicKeyUint8Array,privateKeyUint8Array);
+        //  const encryptedFileData = await encryptFile(fileData,ethereumjs.Buffer.Buffer.from(ethereumjs.Buffer.Buffer.from(JSON.parse( localStorage.getItem("myKeyPair")).publicKey),'hex'));
+        const encryptedFileData = await encryptFile(fileData,ethereumjs.Buffer.Buffer.from(ethereumjs.Buffer.Buffer.from(JSON.parse( localStorage.getItem("keys")).publicKey),'hex'));
+
+        //  console.log(typeof(encryptedFileData))
+        const jsonBlob = new Blob([encryptedFileData], {type: 'application/json'});
+        // const fileFinal = new File([jsonBlob],`${file.name + ".json"}`, { type: 'application/json' });
+        const fileFinal = new File([jsonBlob],`${file.name }`, { type: 'application/json' });
+        
+        console.log(jsonBlob)
+        formData.delete("file");
+        formData.append("file", fileFinal);
+        console.log(formData)
+        fetch("/upload",{
+                method:"POST",
+                body: formData
+              }).then((res)=>res.json()).then((data)=>{
+                console.log(data);
+                var dlink =document.getElementById("dlink");
+                dlink.style.display="flex";
+                dlink.href="http://localhost:3000/download/" +  data.file.filename;
+          })
+        //  console.log(encryptedFileData);
+         //downloadJSON(encryptedFileData,"enc-file.json");
+
+          function downloadJSON(json, filename) {
+                const blob = new Blob([json], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = filename;
+                link.click();
+                URL.revokeObjectURL(url);
+          }
+
+          /*
+          // //working decryption
+          const decryptedFileData = await decryptFile(encryptedFileData,ethereumjs.Buffer.Buffer.from(ethereumjs.Buffer.Buffer.from(JSON.parse( localStorage.getItem("myKeyPair")).privateKey),'hex'))
+          console.log(decryptedFileData);
+
+
+          // Create a blob object from the decrypted data
+          const decryptedBlob = new Blob([decryptedFileData]);
+
+          // Create a URL for the blob object
+          const decryptedUrl = URL.createObjectURL(decryptedBlob);
+
+          // Create a link to download the file
+          const downloadLink = document.createElement("a");
+          downloadLink.href = decryptedUrl;
+          downloadLink.download = "decrypted-file.png";
+          downloadLink.innerHTML = "Download decrypted file";
+
+          // Add the link to the DOM
+          document.body.appendChild(downloadLink);
+          */
           // console.log(encryptedFileDataString);
           // const encryptedFileDataObject = JSON.parse(encryptedFileDataString);
           // console.log(encryptedFileDataObject);
@@ -191,16 +260,16 @@ var publicKeyUint8Array ;
 
 
 
-
-          fetch("/upload",{
-          method:"POST",
-          body: formData
-        }).then((res)=>res.json()).then((data)=>{
-          console.log(data);
-          var dlink =document.getElementById("dlink");
-          dlink.style.display="flex";
-          dlink.href="http://localhost:3000/download/" +  data.file.filename;
-        })
+        //&
+        //   fetch("/upload",{
+        //   method:"POST",
+        //   body: formData
+        // }).then((res)=>res.json()).then((data)=>{
+        //   console.log(data);
+        //   var dlink =document.getElementById("dlink");
+        //   dlink.style.display="flex";
+        //   dlink.href="http://localhost:3000/download/" +  data.file.filename;
+        // })
 
 
 
