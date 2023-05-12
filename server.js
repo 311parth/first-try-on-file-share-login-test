@@ -74,17 +74,19 @@ app.get("/upload", authenticateToken, (req, res) => {
 app.post("/register", async (req, res) => {
   var uname = req.body.uname;
   var pw = req.body.pw;
+  var email = req.body.email;
   const hashedPw = await bcrypt.hash(pw, salt);
 
-  loginModel.findOne({ uname: uname }, (err, result) => {
+  loginModel.findOne({ $or: [{ uname: uname }, { email: email }] }, (err, result) => {
     if (err) throw err;
-    if (result) res.send("enter unique username");
+    if (result) res.send("enter unique username and email");
     else {
       let newDoc = new loginModel({
         uname: uname,
         pw: hashedPw,
+        email:email
       }).save();
-      res.send("done");
+      res.redirect("/");
     }
   });
 });
@@ -137,6 +139,8 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 // app.post("/upload", async (req, res) => {
   var recUname = req.body.recuname;
   // console.log(req.body);  
+  var loggedUser = getLoggedUser(req.cookies.secret,req.body.uname);
+  // console.log(loggedUser)
   try {
     let new_fileinfo = await new fileinfoModel({
       upload_uname: req.cookies.uname,
@@ -145,6 +149,13 @@ app.post("/upload", upload.single("file"), async (req, res) => {
       recUname: recUname,
     }).save();
     // console.log("1111",req.file)
+
+    let newDoc = new msgModel({
+      msg: "http://localhost:3000/download/" + req.file.filename,//TODO: change url while hosting 
+      to: recUname,
+      from: loggedUser.uname,
+      time: Date.now(),
+    }).save();
     res.json({ file: req.file });
   } catch (error) {
     console.log(error);

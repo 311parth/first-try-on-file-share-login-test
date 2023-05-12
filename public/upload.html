@@ -59,6 +59,10 @@
             <button type="button" class="btn btn-dark" onclick="submitFile()">Upload</button>
         </div>
     </form>
+    <!-- <div class="progress">
+      <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+    </div> -->
+
 
     <div>
       <a  href="" id="dlink" target="_blank" style="display: none;">Download link</a>
@@ -119,6 +123,7 @@
           const formData = new FormData(form1);
           // console.log(FormData) 
           const file = formData.get("file");
+          
 
           // console.log(file);
         // Read the file content into a buffer
@@ -154,15 +159,64 @@
         formData.delete("file");
         formData.append("file", fileFinal);
         console.log(formData)
-        fetch("/upload",{
-                method:"POST",
-                body: formData
-              }).then((res)=>res.json()).then((data)=>{
-                console.log(data);
-                var dlink =document.getElementById("dlink");
-                dlink.style.display="flex";
-                dlink.href="http://localhost:3000/download/" +  data.file.filename;
-          })
+        // fetch("/upload",{
+        //         method:"POST",
+        //         body: formData
+        //       }).then((res)=>res.json()).then((data)=>{
+        //         console.log(data);
+        //         var dlink =document.getElementById("dlink");
+        //         dlink.style.display="flex";
+        //         dlink.href="http://localhost:3000/download/" +  data.file.filename;
+        //   })
+        // // custom (hard coded process bar (becuase in localhost processbar is not making sense))
+        // Create a progress bar element
+        const progressContainer = document.createElement("div");
+        progressContainer.style.width = "80%";
+        progressContainer.style.height = "20px";
+        progressContainer.style.backgroundColor = "lightgray";
+        progressContainer.style.borderRadius = "10px";
+        document.body.appendChild(progressContainer);
+
+        const progressBar = document.createElement("div");
+        progressBar.style.width = "0%";
+        progressBar.style.height = "100%";
+        progressBar.style.backgroundColor = "green";
+        progressBar.style.borderRadius = "10px";
+        progressContainer.appendChild(progressBar);
+        
+
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "/upload");
+        xhr.upload.addEventListener("progress", (e) => {
+          const progress = Math.round((e.loaded / e.total) * 100);
+          console.log(`Uploading: ${progress}%`);
+        });
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+              const delay = (time) => new Promise((resolve) => setTimeout(resolve, time));
+              const updateProgress = async () => {
+                for (let i = 0; i <= 100; i += 10) {
+                  await delay(500);
+                  progressBar.style.width = `${i}%`;
+                  console.log(`Uploading: ${i}%`);
+                }
+              };
+              updateProgress().then(()=>{
+                  const data = JSON.parse(xhr.responseText);
+                  console.log(data);
+                  const dlink = document.getElementById("dlink");
+                  dlink.style.display = "flex";
+                  dlink.href = `http://localhost:3000/download/${data.file.filename}`;
+              })
+            } else {
+              console.error(xhr.statusText);
+            }
+          }
+        };
+        
+        xhr.send(formData);
+
         //  console.log(encryptedFileData);
          //downloadJSON(encryptedFileData,"enc-file.json");
 

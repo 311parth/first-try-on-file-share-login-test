@@ -46,54 +46,79 @@
             </div>
         </div>
     </nav>
-    inbox page
 
-    <ul class="list-group" id="inbox-main-ul">
-        <!-- Here all msg li will render -->
-    </ul>
-
-    <script>
-        // let inboxMainUl = document.getElementById("inbox-main-ul");
-        // inboxMainUl.innerHTML += `<li class="list-group-item" >another massive</li>`;
-
-        function copyText(){
-
+    <div class="container mt-5">
+        <ul class="list-group mt-3" id="inbox-main-ul">
+          <!-- Here all msg li will render -->
+        </ul>
+      </div>
+      
+      <script>
+        function copyText(text) {
+          // Create a temporary input element to hold the text to be copied
+          let inputElement = document.createElement("input");
+          inputElement.type = "text";
+          inputElement.value = text;
+          inputElement.style.position = "absolute";
+          inputElement.style.opacity = "0";
+          document.body.appendChild(inputElement);
+      
+          // Select and copy the text
+          inputElement.select();
+          document.execCommand("copy");
+      
+          // Remove the temporary input element
+          document.body.removeChild(inputElement);
         }
+      
         function getCookie(name) {
-            let cookie = {};
-            document.cookie.split(";").forEach(function (el) {
-                let [k, v] = el.split("=");
-                cookie[k.trim()] = v;
-            });
-            return cookie[name];
+          let cookie = {};
+          document.cookie.split(";").forEach(function (el) {
+            let [k, v] = el.split("=");
+            cookie[k.trim()] = v;
+          });
+          return cookie[name];
         }
-
-        //   console.log(getCookie("uname"));
-        //   async function getMsg() {
-        //     fetch(`api/msg/${getCookie("uname")}`)
-        //     .then((response) => response.json())
-        //     .then((data) => console.log(data))
-        //     .catch((err) =>{
-        //         console.log(err);
-        //     })
-        //   }
-
-        window.onload=getMsg();
-        async function getMsg(){
-
-            const res = await fetch(`/api/msg/${getCookie("uname")}`, {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' }
-            })
-            const data = await res.json();
-            let inboxMainUl = document.getElementById("inbox-main-ul");
-            data.forEach(element => {
-                inboxMainUl.innerHTML += `<li class="list-group-item" >${element.msg}<b> From ${element.from}<b/></li> `;
-            });
-            console.log(data);
+      
+        async function getMsg() {
+          const res = await fetch(`/api/msg/${getCookie("uname")}`, {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+          });
+          const data = await res.json();
+          let inboxMainUl = document.getElementById("inbox-main-ul");
+          data.forEach((element) => {
+            let liElement = document.createElement("li");
+            liElement.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center");
+      
+            let msgElement = document.createElement("span");
+            msgElement.textContent = element.msg;
+            liElement.appendChild(msgElement);
+      
+            let fromElement = document.createElement("span");
+            fromElement.classList.add("badge", "bg-dark", "rounded-pill");
+            fromElement.textContent = "From " + element.from;
+            liElement.appendChild(fromElement);
+      
+            let copyButton = document.createElement("button");
+            copyButton.classList.add("btn", "btn-outline-dark");
+            copyButton.textContent = "Copy";
+            copyButton.onclick = function () {
+              copyText(element.msg);
+              copyButton.textContent ="Copied"
+              setTimeout(() => {
+                 copyButton.textContent ="Copy"
+              },800);
+            };
+            liElement.appendChild(copyButton);
+      
+            inboxMainUl.appendChild(liElement);
+          });
         }
-        
-    </script>
-</body>
-
+      
+        window.onload = getMsg();
+      </script>
+      
+      </body>
+      
 </html>
