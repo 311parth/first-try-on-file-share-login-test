@@ -53,7 +53,7 @@
     <form id="form1" enctype="multipart/form-data">
         <div> 
             <label for="formFileLg" class="form-label">Receiver's username</label>
-            <input type="text" name="recuname">
+            <input type="text" name="recuname" >
             <label for="formFileLg" class="form-label">file upload</label>
             <input class="form-control form-control-lg" id="formFileLg" type="file" name="file">
             <button type="button" class="btn btn-dark" onclick="submitFile()">Upload</button>
@@ -70,13 +70,13 @@
 
     <script>
 
-      fetch("http://localhost:3000/temp/get_keys",{
-        method:"POST",
-      }).then(res=>res.json())
-      .then((data)=>{
-        // console.log(data);
-        localStorage.setItem("keys",JSON.stringify(data))
-      })
+      // fetch("http://localhost:3000/temp/get_keys",{
+      //   method:"POST",
+      // }).then(res=>res.json())
+      // .then((data)=>{
+      //   // console.log(data);
+      //   localStorage.setItem("keys",JSON.stringify(data))
+      // })
 
 
 
@@ -119,10 +119,14 @@
     // console.log('Public key:', key.getPublic().encode('hex'));
     // console.log('Private key:', key.getPrivate('hex'));
         async function submitFile() {
+
+          
           var form1 = document.getElementById("form1");
           const formData = new FormData(form1);
           // console.log(FormData) 
           const file = formData.get("file");
+
+        
           
 
           // console.log(file);

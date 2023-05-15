@@ -14,7 +14,7 @@ const fs = require("fs");
 const jwt = require("jsonwebtoken");
 
 app.use(bodyParser.urlencoded({ extended: true }));
-
+app.use(bodyParser.json()); 
 var cookieParser = require("cookie-parser");
 app.use(cookieParser());
 
@@ -30,7 +30,10 @@ const port = process.env.PORT;
 const { msgModel } = require("./model/msgModel");
 const { loginModel } = require("./model/loginModel");
 const { fileinfoModel } = require("./model/fileinfoModel");
+const { KeyPairModel } = require("./model/keyPairModel");
 
+
+const eccrypto = require('eccrypto');
 app.get("/", (req, res) => {
   res.sendFile(__dirname + join("/public/index.html"));
 });
@@ -77,19 +80,68 @@ app.post("/register", async (req, res) => {
   var email = req.body.email;
   const hashedPw = await bcrypt.hash(pw, salt);
 
-  loginModel.findOne({ $or: [{ uname: uname }, { email: email }] }, (err, result) => {
+  loginModel.findOne({ $or: [{ uname: uname }, { email: email }] }, async (err, result) => {
     if (err) throw err;
-    if (result) res.send("enter unique username and email");
+    if (result) res.json({"error": 1});
     else {
       let newDoc = new loginModel({
         uname: uname,
         pw: hashedPw,
         email:email
       }).save();
-      res.redirect("/");
+      // const privateKey = await eccrypto.generatePrivate();
+      // const publicKey = eccrypto.getPublic(privateKey);
+
+      // const keys = {publicKey,privateKey};
+      
+      // let newKeys = new KeyPairModel({
+      //   username: uname,
+      //   publicKey : Buffer.from(keys.publicKey),
+      //   privateKey : Buffer.from(keys.privateKey)
+      // }).save().then(()=>{
+      //   // res.redirect("/");
+      //   res.json({"isok":1});
+      // }).catch((error)=>{
+      //   console.log(error);
+      // })
+
+        res.json({"error":0});
+
+
     }
   });
 });
+app.post("/save_publickey",async(req,res)=>{
+  var uname = req.body.uname;
+  var publicKey = req.body.publicKey;
+  console.log(uname);
+  const prevPublicKey = await KeyPairModel.remove({uname:uname});
+  let newPublicKey  = new KeyPairModel({
+    username: uname,
+    publicKey:publicKey
+  }).save().then(()=>{
+    res.json({"error":0});
+  }).catch(()=>{
+    res.json({"error":1});
+  })
+
+
+})
+
+app.post("/get_publickey",async (req,res)=>{
+  var uname = req.body.recUname;
+  console.log(req.body)
+  
+  if(!uname){
+    res.json({"error":1});
+  }
+
+  var result = await KeyPairModel.findOne({username:uname},{publicKey:1,_id:0});
+
+  if(result){
+    res.json(result);
+  }
+})
 
 app.post("/login", (req, res) => {
   // console.log(req.headers.authorization);
@@ -213,17 +265,17 @@ app.post("/msg", (req, res) => {
   });
 });
 
-app.post("/temp/get_keys",(req,res)=>{
-  const keys = {"privateKey": {"type": "Buffer","data": [119,77,221,228,209,127,0,22,125,122,89,213,105,138,201,32,225,59,66,160,170,240,205,48,179,176,56,163,21,220,208,192]
-    },
-    "publicKey": {
-      "type": "Buffer","data": [4,138,109,65,20,212,68,10,229,32,23,160,51,209,113,81,174,23,237,82,224,17,43,26,163,33,169,146,226,236,62,96,8,48,80,207,160,236,254,13,181,237,183,162,53,178,210,147,61,18,134,176,193,94,74,150,107,218,36,243,4,10,194,120,65]
-    }
-  }
+app.post("/temp/get_keys",async(req,res)=>{
+  // const keys = {"privateKey": {"type": "Buffer","data": [119,77,221,228,209,127,0,22,125,122,89,213,105,138,201,32,225,59,66,160,170,240,205,48,179,176,56,163,21,220,208,192]
+  //   },
+  //   "publicKey": {
+  //     "type": "Buffer","data": [4,138,109,65,20,212,68,10,229,32,23,160,51,209,113,81,174,23,237,82,224,17,43,26,163,33,169,146,226,236,62,96,8,48,80,207,160,236,254,13,181,237,183,162,53,178,210,147,61,18,134,176,193,94,74,150,107,218,36,243,4,10,194,120,65]
+  //   }
+  // }
+  var logged_user = getLoggedUser(req.cookies.secret, req.cookies.uname);
 
-  res.json(keys);
-
-
+  const fetchedPublicKey = await KeyPairModel.findOne({username : logged_user.uname },{publicKey:1,_id:0});
+  res.json(fetchedPublicKey);
 })
 
 /*
@@ -283,6 +335,7 @@ app.get("/api/msg/:id", authUserWithparams, async (req, res) => {
       // console.log(data);
     res.json(data);
   } catch (error) {
+    res.json({"error":1});
     console.log(error);
   }
 });

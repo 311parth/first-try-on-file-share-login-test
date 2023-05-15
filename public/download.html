@@ -37,18 +37,15 @@
             <a class="  nav-link" href="/register">Register</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/msg">Messages</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/upload">Upload</a>
-          </li>
-          <li class="nav-item">
             <a class="nav-link" href="/inbox">inbox</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="/download">download</a>
           </li>
         </ul>
+        <form action="/logout" method="POST">
+          <button  class="btn btn-outline-dark" type="submit">Logout</button>
+      </form>
       </div>
     </div>
   </nav>
@@ -88,11 +85,17 @@
         method:"POST",
       }).then(res=>res.json())
       .then((data)=>{
-        // console.log(data);
+        console.log(data);
         localStorage.setItem("keys",JSON.stringify(data))
+        console.log(JSON.parse(localStorage.getItem(`private_key_${getCookie("uname")}`)).data)
       })
 
-
+      // console.log(JSON.parse(localStorage.getItem(`private_key_${getCookie("uname")}`)))
+      function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+      }
         
         async function downloadFile2(){
           const loadingSpinner = document.getElementById("loadingSpinner");
@@ -105,7 +108,9 @@
               const data = await response.json();
               // const decryptedFileData = await decryptFile(JSON.stringify(data), ethereumjs.Buffer.Buffer.from(ethereumjs.Buffer.Buffer.from(JSON.parse(localStorage.getItem("myKeyPair")).privateKey), 'hex'));
               processingSpinner.style.display="block";
-              const decryptedFileData = await decryptFile(JSON.stringify(data), ethereumjs.Buffer.Buffer.from(ethereumjs.Buffer.Buffer.from(JSON.parse(localStorage.getItem("keys")).privateKey), 'hex'));
+              // const decryptedFileData = await decryptFile(JSON.stringify(data), ethereumjs.Buffer.Buffer.from(ethereumjs.Buffer.Buffer.from(JSON.parse(localStorage.getItem("keys")).privateKey), 'hex'));
+              const decryptedFileData = await decryptFile(JSON.stringify(data), ethereumjs.Buffer.Buffer.from(ethereumjs.Buffer.Buffer.from(JSON.parse(localStorage.getItem(`private_key_${getCookie("uname")}`))), 'hex'));
+
               loadingSpinner.style.display = "block";
 
               setTimeout(() => {

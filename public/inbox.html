@@ -15,44 +15,49 @@
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg bg-light">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="/">Login</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/home">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/register">Register</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/msg">Messages</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/upload">Upload</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/inbox">inbox</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/download">download</a>
-                      </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/">Login</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/home">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/register">Register</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/inbox">inbox</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/download">download</a>
+          </li>
+        </ul>
+        <form action="/logout" method="POST">
+          <button  class="btn btn-outline-dark" type="submit">Logout</button>
+        </form>
+      </div>
+    </div>
+  </nav>
 
     <div class="container mt-5">
-        <ul class="list-group mt-3" id="inbox-main-ul">
-          <!-- Here all msg li will render -->
-        </ul>
-      </div>
-      
+      <table class="table table-striped table-bordered mt-3" id="inbox-main-table">
+        <thead>
+          <tr>
+            <th>Message</th>
+            <th>From</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Here all msg rows will render -->
+        </tbody>
+      </table>
+    </div>
+    
       <script>
         function copyText(text) {
           // Create a temporary input element to hold the text to be copied
@@ -81,41 +86,40 @@
         }
       
         async function getMsg() {
-          const res = await fetch(`/api/msg/${getCookie("uname")}`, {
-            method: "GET",
-            headers: { "Content-Type": "application/json" },
-          });
-          const data = await res.json();
-          let inboxMainUl = document.getElementById("inbox-main-ul");
-          data.forEach((element) => {
-            let liElement = document.createElement("li");
-            liElement.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center");
-      
-            let msgElement = document.createElement("span");
-            msgElement.textContent = element.msg;
-            liElement.appendChild(msgElement);
-      
-            let fromElement = document.createElement("span");
-            fromElement.classList.add("badge", "bg-dark", "rounded-pill");
-            fromElement.textContent = "From " + element.from;
-            liElement.appendChild(fromElement);
-      
-            let copyButton = document.createElement("button");
-            copyButton.classList.add("btn", "btn-outline-dark");
-            copyButton.textContent = "Copy";
-            copyButton.onclick = function () {
-              copyText(element.msg);
-              copyButton.textContent ="Copied"
-              setTimeout(() => {
-                 copyButton.textContent ="Copy"
-              },800);
-            };
-            liElement.appendChild(copyButton);
-      
-            inboxMainUl.appendChild(liElement);
-          });
-        }
-      
+            const res = await fetch(`/api/msg/${getCookie("uname")}`, {
+              method: "GET",
+              headers: { "Content-Type": "application/json" },
+            });
+            const data = await res.json();
+            let inboxMainTable = document.getElementById("inbox-main-table").getElementsByTagName("tbody")[0];
+            data.forEach((element) => {
+              let trElement = document.createElement("tr");
+              
+              let msgElement = document.createElement("td");
+              msgElement.textContent = element.msg;
+              trElement.appendChild(msgElement);
+              
+              let fromElement = document.createElement("td");
+              fromElement.textContent = element.from;
+              trElement.appendChild(fromElement);
+              
+              let actionElement = document.createElement("td");
+              let copyButton = document.createElement("button");
+              copyButton.classList.add("btn", "btn-outline-dark");
+              copyButton.textContent = "Copy";
+              copyButton.onclick = function () {
+                copyText(element.msg);
+                copyButton.textContent = "Copied"
+                setTimeout(() => {
+                  copyButton.textContent = "Copy"
+                }, 800);
+              };
+              actionElement.appendChild(copyButton);
+              trElement.appendChild(actionElement);
+              
+              inboxMainTable.appendChild(trElement);
+            });
+          }
         window.onload = getMsg();
       </script>
       

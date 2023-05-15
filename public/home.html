@@ -35,12 +35,6 @@
             <a class="nav-link" href="/register">Register</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/msg">Messages</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/upload">Upload</a>
-          </li>
-          <li class="nav-item">
             <a class="nav-link" href="/inbox">inbox</a>
           </li>
           <li class="nav-item">
@@ -59,7 +53,7 @@
         <label class="fs-4 fw-bold text-center mb-3" for="file-input">Drag and drop a file here, or click to select a file</label>
         <div class="input-group mb-3">
           <span class="input-group-text" id="basic-addon1">@</span>
-          <input type="text" name="recuname" class="form-control" placeholder="Receiver's Username" aria-label="Username" aria-describedby="basic-addon1">
+          <input type="text" name="recuname" id="recUname" class="form-control" placeholder="Receiver's Username" aria-label="Username" aria-describedby="basic-addon1">
         </div>
         <input class="form-control form-control-lg" id="formFileLg" type="file" name="file">
         <div class="progress-container mt-3">
@@ -86,8 +80,8 @@
       method:"POST",
     }).then(res=>res.json())
     .then((data)=>{
-      // console.log(data);
-      localStorage.setItem("keys",JSON.stringify(data))
+      // console.log(JSON.parse(data.publicKey))
+      localStorage.setItem("public_key_"+getCookie("uname"),data.publicKey)
     })
     function getCookie(name) {
       const value = `; ${document.cookie}`;
@@ -96,6 +90,25 @@
     }
 
     async function submitFile() {
+      var recUname = document.getElementById("recUname").value;
+      var recPublicKey ;
+      console.log(recUname);
+          await fetch("http://localhost:3000/get_publickey",{
+            method:"POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              recUname: recUname
+            })
+          }).then(res=>res.json())
+          .then((data)=>{
+            console.log(data);
+            recPublicKey =data.publicKey; 
+            console.log(JSON.parse(recPublicKey))
+
+
+          })
           var form1 = document.getElementById("form1");
           const formData = new FormData(form1);
           // console.log(FormData) 
@@ -123,7 +136,9 @@
           // const encryptedFileData = await encryptFile(fileData,keys.publicKey);
          //* const encryptedFileData = await encryptFile(fileData,publicKeyUint8Array,privateKeyUint8Array);
         //  const encryptedFileData = await encryptFile(fileData,ethereumjs.Buffer.Buffer.from(ethereumjs.Buffer.Buffer.from(JSON.parse( localStorage.getItem("myKeyPair")).publicKey),'hex'));
-        const encryptedFileData = await encryptFile(fileData,ethereumjs.Buffer.Buffer.from(ethereumjs.Buffer.Buffer.from(JSON.parse( localStorage.getItem("keys")).publicKey),'hex'));
+        // const encryptedFileData = await encryptFile(fileData,ethereumjs.Buffer.Buffer.from(ethereumjs.Buffer.Buffer.from(JSON.parse( localStorage.getItem("keys")).publicKey),'hex'));
+        const encryptedFileData = await encryptFile(fileData,ethereumjs.Buffer.Buffer.from(ethereumjs.Buffer.Buffer.from(JSON.parse(recPublicKey)),'hex'));
+
 
         //  console.log(typeof(encryptedFileData))
         const jsonBlob = new Blob([encryptedFileData], {type: 'application/json'});
