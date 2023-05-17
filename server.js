@@ -114,8 +114,8 @@ app.post("/register", async (req, res) => {
 app.post("/save_publickey",async(req,res)=>{
   var uname = req.body.uname;
   var publicKey = req.body.publicKey;
-  console.log(uname);
-  const prevPublicKey = await KeyPairModel.remove({uname:uname});
+  // console.log(uname);
+  // const prevPublicKey = await KeyPairModel.remove({uname:uname});
   let newPublicKey  = new KeyPairModel({
     username: uname,
     publicKey:publicKey
@@ -130,7 +130,7 @@ app.post("/save_publickey",async(req,res)=>{
 
 app.post("/get_publickey",async (req,res)=>{
   var uname = req.body.recUname;
-  console.log(req.body)
+  // console.log(req.body)
   
   if(!uname){
     res.json({"error":1});
@@ -167,7 +167,7 @@ app.post("/login", (req, res) => {
 
 var filename;
 var storage = new GridFsStorage({
-  url: "mongodb://localhost:27017/testdb",
+  url: "mongodb://127.0.0.1:27017/testdb",
   file: (req, file) => {
     return new Promise((resolve, reject) => {
       crypto.randomBytes(16, (err, buf) => {
