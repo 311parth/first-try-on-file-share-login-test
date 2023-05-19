@@ -23,6 +23,9 @@ const crypto = require("crypto");
 const path = require("path");
 const { GridFsStorage } = require("multer-gridfs-storage");
 
+const nodemailer = require('nodemailer')
+
+
 const { join } = require("path");
 
 const port = process.env.PORT;
@@ -208,7 +211,35 @@ app.post("/upload", upload.single("file"), async (req, res) => {
       from: loggedUser.uname,
       time: Date.now(),
     }).save();
-    res.json({ file: req.file });
+
+    const recEmail = await loginModel.findOne({uname:recUname},{email:1});
+
+    var smtpTransport = nodemailer.createTransport({
+      transport: 'SMTP',
+      pool: true,
+        service: "gmail",
+        port: 465,
+        auth: {
+            user: process.env.EMAIL,
+            pass: process.env.PASSWORD
+        }
+    });
+    var mailOptions = {
+        from: process.env.EMAIL,
+        to: recEmail.email, 
+        subject: `|DE PROJECT| ${loggedUser.uname} UPLOADED FILE FOR YOU`,
+        text: `CHECK YOUR ACCOUNT ,  ${loggedUser.uname} UPLOADED FILE FOR YOU`
+    }
+    smtpTransport.sendMail(mailOptions, function(error, response){
+        if(error){
+            console.log(error);
+        }else{
+            // res.redirect('/');
+            res.json({ file: req.file });
+        }
+    });
+
+    // res.json({ file: req.file });
   } catch (error) {
     console.log(error);
   }
