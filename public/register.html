@@ -33,6 +33,11 @@
         </div>
         <div class="form-floating mt-4">
           <input type="button" class="btn btn-light " value="Submit" onclick="submitRegistration(event)">
+          <button type="button" class="btn btn-light  "  onclick="downloadPrivate()" >Download Private Key </button>
+          <div class="alert alert-success mt-3" id="alert-success" role="alert" id='alert-error' style="display: none;" >
+            Registered successfully
+            <a href="/">Login</a>
+          </div>
         </div>
         <div class="form-floating mt-3">
           <a class="text-danger" href="/">Already Registered? <span class="text-success">Login</span></a>
@@ -44,15 +49,19 @@
       </div>
     </div>
   </div>
+
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
     <path fill="black" fill-opacity="1" d="M0,64L60,90.7C120,117,240,171,360,170.7C480,171,600,117,720,90.7C840,64,960,64,1080,80C1200,96,1320,128,1380,144L1440,160L1440,320L1380,320C1320,320,1200,320,1080,320C960,320,840,320,720,320C600,320,480,320,360,320C240,320,120,320,60,320L0,320Z"></path>
   </svg>
   
   <script>
+    var downloadLink;
+    var username;
     async function submitRegistration(event) {
       event.preventDefault();
       const email = document.querySelector('input[name="email"]').value;
       const uname = document.querySelector('input[name="uname"]').value;
+      username=uname;
       const pw = document.querySelector('input[name="pw"]').value;
       const data = { email, uname, pw };
       console.log(data)
@@ -75,6 +84,7 @@
         console.log(keys,JSON.stringify(keys));
         localStorage.setItem("private_key_" + uname,JSON.stringify(keys.privateKey));
         //IMP : this private key is stored in single browser device so for other devices or other browser it wont work while uplaoding a file
+        // downloadLink.click();
         let keyData = {
           uname : uname,
           publicKey : JSON.stringify(keys.publicKey)
@@ -91,11 +101,30 @@
         console.log(result);
         
         if(!result.error){
-          window.location ="/"
+          document.getElementById("alert-success").style.display="flex";
+          // window.location ="/"
         }
       }
    
   }
+  function downloadPrivate() {
+  const jsonData = localStorage.getItem("private_key_" + username);
+  const blob = new Blob([jsonData], { type: 'application/json' });
+
+  // Create a temporary URL for the blob
+  const url = URL.createObjectURL(blob);
+
+  // Create a temporary link element
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'private_key.json';
+
+  // Programmatically click the link to trigger the download
+  link.click();
+
+  // Clean up the URL object
+  URL.revokeObjectURL(url);
+}
   </script>
   
 </body>

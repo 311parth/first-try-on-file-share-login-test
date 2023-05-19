@@ -377,6 +377,10 @@ app.get("/inbox", authenticateToken, (req, res) => {
 app.get("/download", authenticateToken, (req, res) => {
   res.sendFile(__dirname + join("/public/download.html"));
 });
+app.get("/importkey", authenticateToken, (req, res) => {
+  res.sendFile(__dirname + join("/public/importkey.html"));
+});
+
 
 app.get("/", (req, res) => {
   res.redirect("/login");
