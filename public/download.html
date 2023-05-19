@@ -22,7 +22,8 @@
 </style>
 </head>
 <body>
-  <nav class="navbar navbar-expand-lg bg-light">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+
     <div class="container-fluid">
       <a class="navbar-brand" href="/">Login</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -44,7 +45,7 @@
           </li>
         </ul>
         <form action="/logout" method="POST">
-          <button  class="btn btn-outline-dark" type="submit">Logout</button>
+          <button  class="btn btn-outline-light" type="submit">Logout</button>
       </form>
       </div>
     </div>
@@ -61,6 +62,9 @@
               <input type="text" class="form-control" id="fileurl" placeholder="Enter file URL">
             </div>
             <button type="button" class="btn btn-dark mt-3" onclick="downloadFile2()">Download</button>
+            <div class="alert alert-danger" role="alert" id='alert-error' style="display: none;">
+              Enter Url first
+            </div>
             <div id="processingSpinner" class="mt-3" style="display: none;">
               <span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>
               Decrypting file...
@@ -74,6 +78,9 @@
       </div>
     </div>
   </div>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 320">
+    <path fill="black" fill-opacity="1" d="M0,64L60,90.7C120,117,240,171,360,170.7C480,171,600,117,720,90.7C840,64,960,64,1080,80C1200,96,1320,128,1380,144L1440,160L1440,320L1380,320C1320,320,1200,320,1080,320C960,320,840,320,720,320C600,320,480,320,360,320C240,320,120,320,60,320L0,320Z"></path>
+  </svg>
   
   
   
@@ -103,6 +110,14 @@
 
 
           const url = document.getElementById("fileurl").value;
+          if(!url || url===""){
+            document.getElementById("alert-error").style.display="flex";
+            setTimeout(() => {
+              document.getElementById("alert-error").style.display="none";
+            }, 1500);
+            return;
+
+          }
             fetch(`${url}`)
             .then(async response => {
               const data = await response.json();

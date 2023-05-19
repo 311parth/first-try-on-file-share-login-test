@@ -17,10 +17,10 @@
 
 </head>
 
-<body>
+<body >
 
 
-  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
       <a class="navbar-brand" href="/">Login</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -42,31 +42,41 @@
           </li>
         </ul>
         <form action="/logout" method="POST">
-          <button  class="btn btn-outline-dark" type="submit">Logout</button>
+          <button  class="btn btn-outline-light" type="submit">Logout</button>
       </form>
       </div>
     </div>
   </nav>
   <form id="form1" enctype="multipart/form-data">
-    <div class="d-flex justify-content-center mt-5">
-      <div class="d-flex flex-column align-items-center justify-content-center border border-2 border-dashed border-dark rounded-3 p-4 bg-light text-secondary">
-        <label class="fs-4 fw-bold text-center mb-3" for="file-input">Drag and drop a file here, or click to select a file</label>
+    <div class="d-flex justify-content-center mt-5 " >
+      <div class="d-flex flex-column align-items-center justify-content-center border border-2 border-dashed border-dark rounded-3 p-4 bg-light text-secondary" style="min-width: 50vw;">
+        <label class="fs-4 fw-bold text-center mb-3" for="file-input">Click to select a file</label>
         <div class="input-group mb-3">
           <span class="input-group-text" id="basic-addon1">@</span>
           <input type="text" name="recuname" id="recUname" class="form-control" placeholder="Receiver's Username" aria-label="Username" aria-describedby="basic-addon1">
         </div>
         <input class="form-control form-control-lg" id="formFileLg" type="file" name="file">
+        
+        <div id="processingSpinner" class="mt-3" style="display: none;">
+          <span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>
+          Encrypting file...
+        </div>
         <div class="progress-container mt-3">
           <div class="progress-bar"></div>
         </div>
         <button type="button" class="btn btn-dark mt-3" onclick="submitFile()">Upload</button>
-        <div>
+        <div style="margin-top: 10px;">
           <a  href="" id="dlink" target="_blank" style="display: none;">Download link</a>
         </div>
       </div>
     </div>
   </form>
-  
+  <div class="alert alert-danger" role="alert" id="alert-error"  style="display: none;">
+    Please Select Receiver Username and file
+  </div>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 320">
+    <path fill="black" fill-opacity="1" d="M0,64L60,90.7C120,117,240,171,360,170.7C480,171,600,117,720,90.7C840,64,960,64,1080,80C1200,96,1320,128,1380,144L1440,160L1440,320L1380,320C1320,320,1200,320,1080,320C960,320,840,320,720,320C600,320,480,320,360,320C240,320,120,320,60,320L0,320Z"></path>
+  </svg>
 
   
   
@@ -91,6 +101,16 @@
 
     async function submitFile() {
       var recUname = document.getElementById("recUname").value;
+      if(recUname===null || recUname===""){
+        document.getElementById("alert-error").style.display="flex";
+            setTimeout(() => {
+              document.getElementById("alert-error").style.display="none";
+            }, 1500);
+            return;
+
+      }
+      const processingSpinner = document.getElementById("processingSpinner");
+
       var recPublicKey ;
       console.log(recUname);
           await fetch("http://localhost:3000/get_publickey",{
@@ -113,6 +133,17 @@
           const formData = new FormData(form1);
           // console.log(FormData) 
           const file = formData.get("file");
+          console.log(file)
+          if(!file || !file.name) {
+            document.getElementById("alert-error").style.display="flex";
+            setTimeout(() => {
+              document.getElementById("alert-error").style.display="none";
+            }, 1500);
+            return;
+
+        }
+      processingSpinner.style.display="block";
+
         console.log(getCookie("uname"));
         formData.append("uname",getCookie("uname"));
 
@@ -144,6 +175,7 @@
         const jsonBlob = new Blob([encryptedFileData], {type: 'application/json'});
         // const fileFinal = new File([jsonBlob],`${file.name + ".json"}`, { type: 'application/json' });
         const fileFinal = new File([jsonBlob],`${file.name }`, { type: 'application/json' });
+        processingSpinner.style.display="none";
         
         console.log(jsonBlob)
         formData.delete("file");

@@ -12,36 +12,41 @@
 <script src="http://localhost:3000/eccrypto-2.js"></script>
 
 </head>
-<body>
+<body class="bg-dark text-light">
 
-  <div class="d-flex justify-content-center top-50 start-50 align-items-center  vh-100">
-    <div class="row w-75 border rounded p-3 ">
-      <div class="col-md-6 d-flex flex-column justify-content-center border-end pe-3 ">
-        <!-- <form method="POST" action="/register"> -->
-          <h3 class="mb-4">Register</h3>
-          <div class="input-group mb-3">
-            <span class="input-group-text" id="basic-addon1">Email</span>
-            <input type="email" name="email" class="form-control" placeholder="test@example.com" aria-label="Username" aria-describedby="basic-addon1">
-          </div>
-          <div class="form-floating mb-3">
-            <input type="text" name="uname" class="form-control w-100" id="floatingInput" placeholder="username">
-            <label for="floatingInput">username</label>
-          </div>
-          <div class="form-floating">
-            <input type="password" name="pw" class="form-control w-100" id="floatingPassword" placeholder="Password">
-            <label for="floatingPassword">Password</label>
-          </div>
-          <div class="form-floating mt-4">
-            <input type="button" class="btn btn-dark " value="submit" onclick="submitRegistration(event)">
-          </div>
-        <!-- </form> -->
+   <div class="d-flex justify-content-center top-50 start-50 align-items-center vh-90 ">
+    <div class="row w-75 border rounded p-3">
+      <div class="col-md-6 d-flex flex-column justify-content-center border-end pe-3">
+        <h3 class="mb-4">Register</h3>
+        <div class="input-group mb-3">
+          <span class="input-group-text" id="basic-addon1">Email</span>
+          <input type="email" name="email" class="form-control bg-dark text-white" placeholder="test@example.com" aria-label="Username"
+            aria-describedby="basic-addon1">
+        </div>
+        <div class="form-floating mb-3">
+          <input type="text" name="uname" class="form-control w-100  bg-dark text-white"  id="floatingInput" placeholder="username">
+          <label for="floatingInput">Username</label>
+        </div>
+        <div class="form-floating">
+          <input type="password" name="pw" class="form-control w-100  bg-dark text-white" id="floatingPassword" placeholder="Password">
+          <label for="floatingPassword">Password</label>
+        </div>
+        <div class="form-floating mt-4">
+          <input type="button" class="btn btn-light " value="Submit" onclick="submitRegistration(event)">
+        </div>
+        <div class="form-floating mt-3">
+          <a class="text-danger" href="/">Already Registered? <span class="text-success">Login</span></a>
+        </div>
       </div>
       <div class="col-md-6 d-flex flex-column justify-content-center ps-3">
-        <h3 class="mb-4">Welcome to our website!</h3>
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce feugiat sapien a semper malesuada. Aenean auctor diam sed tellus varius, et semper ipsum porttitor. </p>
+        <h3 class="mb-4">Welcome!</h3>
+        <p>Welcome to our secure file sharing web app, where you can effortlessly and confidently exchange files with utmost security. With a focus on protecting your valuable data, our platform offers a seamless and reliable solution for sharing files with colleagues, clients, and collaborators.</p>
       </div>
     </div>
   </div>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+    <path fill="black" fill-opacity="1" d="M0,64L60,90.7C120,117,240,171,360,170.7C480,171,600,117,720,90.7C840,64,960,64,1080,80C1200,96,1320,128,1380,144L1440,160L1440,320L1380,320C1320,320,1200,320,1080,320C960,320,840,320,720,320C600,320,480,320,360,320C240,320,120,320,60,320L0,320Z"></path>
+  </svg>
   
   <script>
     async function submitRegistration(event) {
