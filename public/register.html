@@ -33,10 +33,10 @@
         </div>
         <div class="form-floating mt-4">
           <input type="button" class="btn btn-light " value="Submit" onclick="submitRegistration(event)">
-          <button type="button" class="btn btn-light  "  onclick="downloadPrivate()" >Download Private Key </button>
+          <button type="button" class="btn btn-light  " id="download-private-btn" onclick="downloadPrivate()" style="display: none;">Download Private Key </button>
           <div class="alert alert-success mt-3" id="alert-success" role="alert" id='alert-error' style="display: none;" >
             Registered successfully
-            <a href="/">Login</a>
+            <a href="/" class="ml-2">Login</a>
           </div>
         </div>
         <div class="form-floating mt-3">
@@ -102,6 +102,8 @@
         
         if(!result.error){
           document.getElementById("alert-success").style.display="flex";
+          document.getElementById("download-private-btn").style.display="flex";
+
           // window.location ="/"
         }
       }

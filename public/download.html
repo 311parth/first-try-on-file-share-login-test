@@ -123,6 +123,7 @@
           }
             fetch(`${url}`)
             .then(async response => {
+              if(!response || !response.ok){alert("Invalid url")};
               const data = await response.json();
               // const decryptedFileData = await decryptFile(JSON.stringify(data), ethereumjs.Buffer.Buffer.from(ethereumjs.Buffer.Buffer.from(JSON.parse(localStorage.getItem("myKeyPair")).privateKey), 'hex'));
               processingSpinner.style.display="block";

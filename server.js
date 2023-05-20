@@ -190,6 +190,16 @@ var storage = new GridFsStorage({
 
 const upload = multer({ storage });
 
+var smtpTransport = nodemailer.createTransport({
+  transport: 'SMTP',
+  pool: true,
+    service: "gmail",
+    port: 465,
+    auth: {
+        user: process.env.EMAIL,
+        pass: process.env.PASSWORD
+    }
+});
 app.post("/upload", upload.single("file"), async (req, res) => {
 // app.post("/upload", async (req, res) => {
   var recUname = req.body.recuname;
@@ -214,16 +224,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 
     const recEmail = await loginModel.findOne({uname:recUname},{email:1});
 
-    var smtpTransport = nodemailer.createTransport({
-      transport: 'SMTP',
-      pool: true,
-        service: "gmail",
-        port: 465,
-        auth: {
-            user: process.env.EMAIL,
-            pass: process.env.PASSWORD
-        }
-    });
+    
     var mailOptions = {
         from: process.env.EMAIL,
         to: recEmail.email, 
