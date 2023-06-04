@@ -104,6 +104,14 @@
       if (parts.length === 2) return parts.pop().split(';').shift();
     }
 
+    async function sha256Hash(data) {
+      const encoder = new TextEncoder();
+      const dataBuffer = encoder.encode(data);
+      const hashBuffer = await crypto.subtle.digest("SHA-256", dataBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(byte => byte.toString(16).padStart(2, "0")).join("");
+      return hashHex;
+    }
     async function submitFile() {
       var recUname = document.getElementById("recUname").value;
       if(recUname===null || recUname===""){
@@ -117,7 +125,8 @@
       const processingSpinner = document.getElementById("processingSpinner");
 
       var recPublicKey ;
-      console.log(recUname);
+      // console.log(recUname);
+
           await fetch("http://localhost:3000/get_publickey",{
             method:"POST",
             headers: {
@@ -128,9 +137,9 @@
             })
           }).then(res=>res.json())
           .then((data)=>{
-            console.log(data);
+            // console.log(data);
             recPublicKey =data.publicKey; 
-            console.log(JSON.parse(recPublicKey))
+            // console.log(JSON.parse(recPublicKey))
 
 
           })
@@ -138,7 +147,9 @@
           const formData = new FormData(form1);
           // console.log(FormData) 
           const file = formData.get("file");
-          console.log(file)
+          // console.log(file)
+
+          
           if(!file || !file.name) {
             document.getElementById("alert-error").style.display="flex";
             setTimeout(() => {
@@ -149,7 +160,7 @@
         }
       processingSpinner.style.display="block";
 
-        console.log(getCookie("uname"));
+        // console.log(getCookie("uname"));
         formData.append("uname",getCookie("uname"));
 
           
@@ -165,9 +176,14 @@
           reader.onerror = reject;
           reader.readAsArrayBuffer(file);
         });
-        console.log(fileBuffer);
+        // console.log(fileBuffer);
 
         const fileData = new Uint8Array(fileBuffer);
+        // console.log(fileData);
+        
+          const hash = await sha256Hash(fileData.buffer);
+          formData.append("fileHashValue",hash);
+          // console.log(hash);
           // const encryptedFileData = await encryptFile(fileData,PublicKey);
           // const encryptedFileData = await encryptFile(fileData,keys.publicKey);
          //* const encryptedFileData = await encryptFile(fileData,publicKeyUint8Array,privateKeyUint8Array);
@@ -182,10 +198,10 @@
         const fileFinal = new File([jsonBlob],`${file.name }`, { type: 'application/json' });
         processingSpinner.style.display="none";
         
-        console.log(jsonBlob)
+        // console.log(jsonBlob)
         formData.delete("file");
         formData.append("file", fileFinal);
-        console.log(formData)
+        // console.log(formData)
 
         const progressContainer = document.querySelector(".progress-container");
         const progressBar = document.querySelector(".progress-bar");
@@ -217,7 +233,7 @@
                 }
                 progressContainer.remove();
                 const data = JSON.parse(xhr.responseText);
-                console.log(data);
+                // console.log(data);
                 const dlink = document.getElementById("dlink");
                 dlink.style.display = "flex";
                 dlink.href = `http://localhost:3000/download/${data.file.filename}`;

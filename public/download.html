@@ -65,6 +65,12 @@
               <input type="text" class="form-control" id="fileurl" placeholder="Enter file URL">
             </div>
             <button type="button" class="btn btn-dark mt-3" onclick="downloadFile2()">Download</button>
+            <div class="alert alert-success" role="alert" id='hash-success' style="display: none;">
+              Hash values match. File integrity verified.
+            </div>
+            <div class="alert alert-danger" role="alert" id='hash-danger' style="display: none;">
+              Hash values do not match. File integrity compromised.
+            </div>
             <div class="alert alert-danger" role="alert" id='alert-error' style="display: none;">
               Enter Url first
             </div>
@@ -95,10 +101,20 @@
         method:"POST",
       }).then(res=>res.json())
       .then((data)=>{
-        console.log(data);
+        // console.log(data);
         localStorage.setItem("keys",JSON.stringify(data))
-        console.log(JSON.parse(localStorage.getItem(`private_key_${getCookie("uname")}`)).data)
+        // console.log(JSON.parse(localStorage.getItem(`private_key_${getCookie("uname")}`)).data)
       })
+
+      
+    async function sha256Hash(data) {
+      const encoder = new TextEncoder();
+      const dataBuffer = encoder.encode(data);
+      const hashBuffer = await crypto.subtle.digest("SHA-256", dataBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(byte => byte.toString(16).padStart(2, "0")).join("");
+      return hashHex;
+    }
 
       // console.log(JSON.parse(localStorage.getItem(`private_key_${getCookie("uname")}`)))
       function getCookie(name) {
@@ -119,7 +135,6 @@
               document.getElementById("alert-error").style.display="none";
             }, 1500);
             return;
-
           }
             fetch(`${url}`)
             .then(async response => {
@@ -129,9 +144,43 @@
               processingSpinner.style.display="block";
               // const decryptedFileData = await decryptFile(JSON.stringify(data), ethereumjs.Buffer.Buffer.from(ethereumjs.Buffer.Buffer.from(JSON.parse(localStorage.getItem("keys")).privateKey), 'hex'));
               const decryptedFileData = await decryptFile(JSON.stringify(data), ethereumjs.Buffer.Buffer.from(ethereumjs.Buffer.Buffer.from(JSON.parse(localStorage.getItem(`private_key_${getCookie("uname")}`))), 'hex'));
+              // console.log(decryptedFileData)
+              const hashAtDownloadPage = await sha256Hash(decryptedFileData.buffer);
+              // console.log("hashAtDownloadPage",hashAtDownloadPage)
+              var filename = url.split('/').pop();
 
+              // console.log(filename);
+              //fetching hashed value for downloaded file
+                function fetchFileHash(filename) {
+                  return new Promise((resolve, reject) => {
+                    fetch(`/download/hash/${filename}`, {
+                      method: "GET",
+                    })
+                      .then(async (response) => {
+                        if (!response || !response.ok) {
+                          reject("Something went wrong");
+                        }
+                        const data = await response.json();
+                        // console.log("hash res", data);
+                        if (!data.fileHashValue) {
+                          reject("Something went wrong");
+                        }
+                        resolve(data.fileHashValue);
+                      })
+                      .catch((error) => {
+                        reject(error);
+                      });
+                  });
+                }
+              var fetchFileHashValue = await fetchFileHash(filename);
+              // console.log(fetchFileHashValue,hashAtDownloadPage);
+              if(fetchFileHashValue===hashAtDownloadPage){
+                // alert("integrity of the file is checked");
+                document.getElementById("hash-success").style.display="flex";
+              }else{
+                document.getElementById("hash-danger").style.display="flex";
+              }
               loadingSpinner.style.display = "block";
-
               setTimeout(() => {
                 processingSpinner.style.display="none";
               }, 3000);
@@ -139,7 +188,6 @@
               // Create a blob from the decrypted file data
               const blob = new Blob([decryptedFileData]);
               
-              var filename = url.split('/').pop();
               // Create a link element with the blob URL and trigger a download
               const link = document.createElement('a');
               link.href = URL.createObjectURL(blob);
@@ -158,14 +206,14 @@
         async function downloadFile() {
           
           const url = document.getElementById("fileurl").value;
-          console.log(url);
+          // console.log(url);
 
 
           // const storedKeyPair = JSON.parse(localStorage.getItem('myKeyPair'));
           const storedKeyPair = JSON.parse(localStorage.getItem('keys'));
 
 
-          console.log(storedKeyPair)
+          // console.log(storedKeyPair)
   fetch(url)
     .then((response) => response.blob())
     .then(async(blob) => {
@@ -174,12 +222,12 @@
       reader.onload =async () => {
         const fileData = reader.result;
         // Process the file data here
-        console.log(fileData);
+        // console.log(fileData);
         return;
         // const fileDataUint8Array = new Uint8Array(fileData);
         // console.log(fileDataUint8Array)
         const fileDataUint8Array = await ethereumjs.Buffer.Buffer.from(fileData,'hex')
-        console.log(fileDataUint8Array)
+        // console.log(fileDataUint8Array)
 
         // const tempBase64 = new Uint8Array(ethereumjs.Buffer.Buffer.from(fileDataUint8Array, 'base64'));
         // console.log(tempBase64)
@@ -187,10 +235,10 @@
 
         var privateKeyUint8Array = ethereumjs.Buffer.Buffer.from(storedKeyPair.privateKey.data,'hex');
         var publicKeyUint8Array = ethereumjs.Buffer.Buffer.from(storedKeyPair.publicKey.data,'hex');
-        console.log(privateKeyUint8Array);  
+        // console.log(privateKeyUint8Array);  
         const decryptedFileData = await decryptFile(fileDataUint8Array, privateKeyUint8Array);
         // const decryptedFileData = await decryptFile(fileData, privateKeyUint8Array);
-        console.log(decryptedFileData);
+        // console.log(decryptedFileData);
 
         // Convert the processed file data to a Blob object
         const processedBlob = new Blob([fileData], { type: blob.type });

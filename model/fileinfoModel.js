@@ -5,7 +5,8 @@ const fileinfoSchema = new mongoose.Schema({
     upload_uname : String,
     name : String,
     time : Date,
-    recUname: String
+    recUname: String,
+    fileHashValue : String,
   })
 var fileinfoModel = mongoose.model("fileinfomodels",fileinfoSchema)
   

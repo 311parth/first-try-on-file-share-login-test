@@ -1,6 +1,6 @@
 const { Buffer } = require("buffer");
 var eccrypto = require("eccrypto");
-
+var crypto = require("crypto");
 function hello(params) {
     console.log("he");
 }
@@ -179,5 +179,9 @@ eccrypto.decrypt(privateKey, {
 
 
 // encryptFile("./p6-2.png","encrypted-p6-2.json");
-decryptFile("./encrypted-p6-2.json","decrypted-p6-2.png");
+// decryptFile("./encrypted-p6-2.json","decrypted-p6-2.png");
 
+var str = "message to sign";
+// Always hash you message to sign!
+var msg = crypto.createHash("sha256").update(str).digest();
+console.log(msg);

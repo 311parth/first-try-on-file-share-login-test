@@ -206,12 +206,14 @@ app.post("/upload", upload.single("file"), async (req, res) => {
   // console.log(req.body);  
   var loggedUser = getLoggedUser(req.cookies.secret,req.body.uname);
   // console.log(loggedUser)
+  const fileHashValue = req.body.fileHashValue;
   try {
     let new_fileinfo = await new fileinfoModel({
       upload_uname: req.cookies.uname,
       name: filename,
       time: Date.now(),
       recUname: recUname,
+      fileHashValue: fileHashValue
     }).save();
     // console.log("1111",req.file)
 
@@ -246,6 +248,17 @@ app.post("/upload", upload.single("file"), async (req, res) => {
   }
 });
 
+app.get("/download/hash/:id",authenticateToken,async (req,res)=>{
+  try {
+    const filename = req.params.id;
+    const resFileHashValue = await fileinfoModel.findOne({name:filename},{fileHashValue:1});
+    if(resFileHashValue){
+      res.json({fileHashValue : resFileHashValue.fileHashValue});
+    }
+  } catch (error) {
+    console.log(error);
+  }
+})
 app.get("/download/:id", authenticateToken, async (req, res) => {
   const bucket = new mongodb.GridFSBucket(conn.db, { bucketName: "filedb" });
   await fileinfoModel
