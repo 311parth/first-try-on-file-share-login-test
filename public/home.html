@@ -183,17 +183,32 @@
         
           const hash = await sha256Hash(fileData.buffer);
           formData.append("fileHashValue",hash);
-          // console.log(hash);
-          // const encryptedFileData = await encryptFile(fileData,PublicKey);
-          // const encryptedFileData = await encryptFile(fileData,keys.publicKey);
-         //* const encryptedFileData = await encryptFile(fileData,publicKeyUint8Array,privateKeyUint8Array);
-        //  const encryptedFileData = await encryptFile(fileData,ethereumjs.Buffer.Buffer.from(ethereumjs.Buffer.Buffer.from(JSON.parse( localStorage.getItem("myKeyPair")).publicKey),'hex'));
-        // const encryptedFileData = await encryptFile(fileData,ethereumjs.Buffer.Buffer.from(ethereumjs.Buffer.Buffer.from(JSON.parse( localStorage.getItem("keys")).publicKey),'hex'));
-        const encryptedFileData = await encryptFile(fileData,ethereumjs.Buffer.Buffer.from(ethereumjs.Buffer.Buffer.from(JSON.parse(recPublicKey)),'hex'));
+
+        const CHUNK_SIZE = 1024 * 1024 * 50; // 20MB Define the size of each partition/chunk
+
+// const fileDataBuffer = ethereumjs.Buffer.Buffer.from(fileData);
+const fileDataBuffer = Uint8Array.from(fileData);
+const totalChunks = Math.ceil(fileDataBuffer.length / CHUNK_SIZE);
+var encryptedChunks = [];
+
+console.log(totalChunks)
+for (let i = 0; i < totalChunks; i++) {
+  console.log("encry ",i);
+  const start = i * CHUNK_SIZE;
+  const end = start + CHUNK_SIZE;
+  const chunk = fileDataBuffer.slice(start, end);
+
+  const encryptedChunk = await encryptFile(chunk, ethereumjs.Buffer.Buffer.from(JSON.parse(recPublicKey), 'hex'));
+  encryptedChunks.push(encryptedChunk);
+
+  // delete fileDataBuffer.slice(start, end);
+  // Remove processed chunk from fileData
+}
+// console.log("encryption done")
 
 
-        //  console.log(typeof(encryptedFileData))
-        const jsonBlob = new Blob([encryptedFileData], {type: 'application/json'});
+
+        const jsonBlob = new Blob([JSON.stringify(encryptedChunks)], {type: 'application/json'});
         // const fileFinal = new File([jsonBlob],`${file.name + ".json"}`, { type: 'application/json' });
         const fileFinal = new File([jsonBlob],`${file.name }`, { type: 'application/json' });
         processingSpinner.style.display="none";
@@ -246,8 +261,9 @@
         };
 
         xhr.send(formData);
+          
 
-        //  console.log(encryptedFileData);
+
          //downloadJSON(encryptedFileData,"enc-file.json");
 
           function downloadJSON(json, filename) {
@@ -261,6 +277,7 @@
           }
 
         }
+
         
         
       </script>

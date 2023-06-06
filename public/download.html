@@ -126,6 +126,7 @@
         async function downloadFile2(){
           const loadingSpinner = document.getElementById("loadingSpinner");
           const processingSpinner = document.getElementById("processingSpinner");
+          processingSpinner.style.display="block";
 
 
           const url = document.getElementById("fileurl").value;
@@ -141,11 +142,28 @@
               if(!response || !response.ok){alert("Invalid url")};
               const data = await response.json();
               // const decryptedFileData = await decryptFile(JSON.stringify(data), ethereumjs.Buffer.Buffer.from(ethereumjs.Buffer.Buffer.from(JSON.parse(localStorage.getItem("myKeyPair")).privateKey), 'hex'));
-              processingSpinner.style.display="block";
               // const decryptedFileData = await decryptFile(JSON.stringify(data), ethereumjs.Buffer.Buffer.from(ethereumjs.Buffer.Buffer.from(JSON.parse(localStorage.getItem("keys")).privateKey), 'hex'));
-              const decryptedFileData = await decryptFile(JSON.stringify(data), ethereumjs.Buffer.Buffer.from(ethereumjs.Buffer.Buffer.from(JSON.parse(localStorage.getItem(`private_key_${getCookie("uname")}`))), 'hex'));
+              // console.log(data);
+              // const decryptedFileData = await decryptFile(JSON.stringify(data), ethereumjs.Buffer.Buffer.from(ethereumjs.Buffer.Buffer.from(JSON.parse(localStorage.getItem(`private_key_${getCookie("uname")}`))), 'hex'));
               // console.log(decryptedFileData)
-              const hashAtDownloadPage = await sha256Hash(decryptedFileData.buffer);
+              // console.log(JSON.parse(JSON.stringify(data)));
+
+              var encryptedChunks = JSON.parse(JSON.stringify(data));
+const decryptedChunks = [];
+
+// console.log(encryptedChunks.length);
+for (let i = 0; i < encryptedChunks.length; i++) {
+  const decryptedChunk = await decryptFile(encryptedChunks[i],ethereumjs.Buffer.Buffer.from(ethereumjs.Buffer.Buffer.from(JSON.parse(localStorage.getItem(`private_key_${getCookie("uname")}`))), 'hex'));
+  decryptedChunks.push(decryptedChunk);
+}
+
+// console.log(decryptedChunks);
+
+var mergedDecryptedData = ethereumjs.Buffer.Buffer.concat(decryptedChunks)
+
+
+
+              const hashAtDownloadPage = await sha256Hash(mergedDecryptedData.buffer);
               // console.log("hashAtDownloadPage",hashAtDownloadPage)
               var filename = url.split('/').pop();
 
@@ -186,7 +204,7 @@
               }, 3000);
               
               // Create a blob from the decrypted file data
-              const blob = new Blob([decryptedFileData]);
+              const blob = new Blob([mergedDecryptedData]);
               
               // Create a link element with the blob URL and trigger a download
               const link = document.createElement('a');
@@ -196,6 +214,7 @@
               setTimeout(() => {
                 loadingSpinner.style.display = "none"; // show the loading component
               }, 3000);
+
             })
             .catch(error => {
               console.error(error);
