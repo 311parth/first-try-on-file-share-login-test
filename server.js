@@ -19,9 +19,7 @@ var cookieParser = require("cookie-parser");
 app.use(cookieParser());
 
 const { conn } = require("./db/db");
-const crypto = require("crypto");
 const path = require("path");
-const { GridFsStorage } = require("multer-gridfs-storage");
 
 const nodemailer = require('nodemailer')
 
@@ -36,7 +34,6 @@ const { fileinfoModel } = require("./model/fileinfoModel");
 const { KeyPairModel } = require("./model/keyPairModel");
 
 
-const eccrypto = require('eccrypto');
 app.get("/", (req, res) => {
   res.sendFile(__dirname + join("/public/index.html"));
 });
@@ -168,25 +165,19 @@ app.post("/login", (req, res) => {
   });
 });
 
-var filename;
-var storage = new GridFsStorage({
-  url: "mongodb://127.0.0.1:27017/testdb",
-  file: (req, file) => {
-    return new Promise((resolve, reject) => {
-      crypto.randomBytes(16, (err, buf) => {
-        if (err) {
-          return reject(err);
-        }
-        filename = buf.toString("hex") + path.extname(file.originalname);
-        const fileInfo = {
-          filename: filename,
-          bucketName: "filedb",
-        };
-        resolve(fileInfo);
-      });
-    });
+
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, './tmp/uploads')
   },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const originalExt = path.extname(file.originalname); // Get the original file extension
+    cb(null, file.fieldname + '-' + uniqueSuffix + originalExt); // Append the extension to the filename
+  }
 });
+
 
 const upload = multer({ storage });
 
@@ -207,13 +198,16 @@ app.post("/upload", upload.single("file"), async (req, res) => {
   var loggedUser = getLoggedUser(req.cookies.secret,req.body.uname);
   // console.log(loggedUser)
   const fileHashValue = req.body.fileHashValue;
+  const fileLocation = req.file.path;
+  const filename = path.basename(fileLocation);
   try {
     let new_fileinfo = await new fileinfoModel({
       upload_uname: req.cookies.uname,
       name: filename,
       time: Date.now(),
       recUname: recUname,
-      fileHashValue: fileHashValue
+      fileHashValue: fileHashValue,
+      fileLocation : fileLocation
     }).save();
     // console.log("1111",req.file)
 
@@ -259,31 +253,26 @@ app.get("/download/hash/:id",authenticateToken,async (req,res)=>{
     console.log(error);
   }
 })
-app.get("/download/:id", authenticateToken, async (req, res) => {
-  const bucket = new mongodb.GridFSBucket(conn.db, { bucketName: "filedb" });
-  await fileinfoModel
-    .findOne(
-      { name: req.params.id, recUname: req.cookies.uname },
-      (err, result) => {
-        if (err) throw err;
-        if (result) {
-          bucket.openDownloadStreamByName(req.params.id).pipe(
-            fs.createWriteStream(req.params.id).on("close", () => {
-              res.download(__dirname + "/" + req.params.id);
-              fs.rm(req.params.id, () => {
-                // console.log("file removed");
-              });
-            })
-          );
-        } else res.sendStatus(403);
-      }
-    )
-    .clone()
-    .catch((error) => {
-      console.log(error);
-    });
-});
 
+app.get("/download/:id", authenticateToken, async (req, res) => {
+  const fileId = req.params.id;
+  try {
+    // Check if the user is authorized to download the file
+    const fileInfo = await fileinfoModel.findOne({ name: fileId, recUname: req.cookies.uname });
+    if (!fileInfo) {
+      return res.status(404).json({ error: "File not found or unauthorized" });
+    }
+
+    // Get the full path to the file on the server's file system
+    const fileLocation = path.resolve(fileInfo.fileLocation);
+
+    // Send the file to the client for download
+    res.sendFile(fileLocation);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 app.post("/msg", (req, res) => {
   const touname = req.body.touname;
   const fromuname = getLoggedUser(req.cookies.secret, req.cookies.uname).uname;
