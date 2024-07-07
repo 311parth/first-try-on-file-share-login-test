@@ -1,4 +1,7 @@
 .env
 /node_modules
 *.log
-tmp/uploads/
+tmp/
+test/**/*.jpg
+test/**/*.png
+.idea
